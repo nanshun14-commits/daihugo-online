@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>大富豪オンライン</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color:#fff;user-select:none;font-size:14px}
+#app{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:8px}
+
+/* ロビー */
+#lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;width:100%;max-width:400px}
+#lobby h1{font-size:36px;font-weight:700;color:#ffd700;letter-spacing:3px;margin-bottom:8px}
+#lobby input{width:100%;padding:12px 16px;border-radius:10px;border:2px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;font-size:16px;outline:none}
+#lobby input:focus{border-color:#ffd700}
+#lobby input::placeholder{color:#888}
+.lobby-btn{width:100%;padding:14px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s}
+#btn-create{background:#ffd700;color:#1a1a1a}
+#btn-create:hover{background:#ffe84a;transform:translateY(-2px)}
+#btn-join{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.4)}
+#btn-join:hover{background:rgba(255,255,255,.25)}
+#room-id-input-wrap{display:none;flex-direction:column;gap:8px;width:100%}
+.or-divider{color:#888;font-size:13px;text-align:center}
+#lobby-status{font-size:13px;color:#90EE90;text-align:center;min-height:20px}
+
+/* 待機室 */
+#waiting{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:500px;padding:32px 0}
+#waiting h2{font-size:22px;font-weight:700;color:#ffd700}
+#room-code-display{background:rgba(0,0,0,.4);border:2px solid #ffd700;border-radius:12px;padding:16px 32px;text-align:center}
+#room-code-display .label{font-size:12px;color:#aaa;margin-bottom:4px}
+#room-code-display .code{font-size:36px;font-weight:700;color:#ffd700;letter-spacing:6px}
+#copy-btn{background:rgba(255,215,0,.2);color:#ffd700;border:1px solid #ffd700;padding:6px 16px;border-radius:8px;cursor:pointer;font-size:12px}
+#seat-list{width:100%;display:flex;flex-direction:column;gap:8px}
+.seat-item{background:rgba(0,0,0,.3);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.seat-num{font-size:12px;color:#888;width:40px}
+.seat-name{font-weight:600}
+.seat-empty{color:#555;font-style:italic}
+#btn-start{background:#27ae60;color:#fff;padding:14px 40px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;display:none}
+#btn-start:hover{background:#2ecc71}
+#waiting-status{font-size:13px;color:#90EE90;text-align:center}
+
+/* ゲーム画面 */
+#game{display:none;flex-direction:column;align-items:center;width:100%;max-width:920px}
+#hdr{display:flex;align-items:center;justify-content:space-between;width:100%;padding:4px 0 6px}
+#hdr h1{font-size:18px;font-weight:700;color:#ffd700}
+#sbar{font-size:11px;color:#90EE90;background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;display:flex;align-items:center;gap:8px}
+#mute-btn{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;padding:2px 8px;border-radius:12px;font-size:10px;cursor:pointer}
+#tbl{width:100%;display:grid;grid-template-columns:130px 1fr 130px;gap:6px}
+.cp{background:rgba(0,0,0,.4);border-radius:10px;padding:7px;border:2px solid transparent;transition:border-color .3s,opacity .3s}
+.cp.active{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,.4)}
+.cp.passed{opacity:.55}
+.cp.done{border-color:#888}
+.cp.me{border-color:rgba(100,200,100,.5)}
+.pnm{font-size:11px;font-weight:700;color:#ffd700;text-align:center;margin-bottom:2px}
+.prk{font-size:10px;text-align:center;margin-bottom:3px;min-height:14px}
+.pct{font-size:22px;font-weight:700;text-align:center}
+.bks{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:3px}
+.bk{width:13px;height:19px;background:linear-gradient(135deg,#1a3a8a,#2855c8);border-radius:2px;border:1px solid rgba(255,255,255,.25)}
+#ctr{grid-column:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+#btm{grid-column:1/4}
+#pla{background:rgba(0,0,0,.35);border-radius:14px;padding:12px;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%}
+#pld{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;min-height:74px;align-items:center}
+#tlbl{font-size:12px;font-weight:600;color:#90EE90;text-align:center}
+#elbl{font-size:11px;color:#ffd700;text-align:center;min-height:16px}
+#slbl{font-size:11px;color:#ff9900;text-align:center;min-height:16px}
+.card{width:48px;height:70px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #bbb;background:#fff;color:#222;cursor:pointer;transition:transform .12s,box-shadow .12s;flex-shrink:0}
+.card.red{color:#c00}
+.card.sel{transform:translateY(-14px);box-shadow:0 8px 18px rgba(255,215,0,.9);border-color:#ffd700}
+.card:hover:not(.nc){transform:translateY(-5px)}
+.card.sel:hover{transform:translateY(-15px)}
+.cs{font-size:13px;line-height:1}
+.cn{font-size:18px;font-weight:700;line-height:1}
+.card.jok{background:linear-gradient(135deg,#ff6b6b,#ffd700)!important;color:#1a1a1a!important;border-color:#e00!important}
+.card.nc{cursor:default}.card.nc:hover{transform:none}
+#ha{background:rgba(0,0,0,.4);border-radius:10px;padding:10px}
+#hlbl{font-size:11px;color:#90EE90;text-align:center;margin-bottom:6px;font-weight:600}
+#hnd{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:80px;align-items:flex-end}
+#bts{display:flex;gap:7px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+button.gbtn{padding:7px 18px;border-radius:7px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:all .12s}
+#bpl{background:#ffd700;color:#1a1a1a}
+#bpl:hover:not(:disabled){background:#ffe84a;transform:translateY(-2px)}
+#bps{background:rgba(255,255,255,.18);color:#fff;border:2px solid rgba(255,255,255,.35)}
+#bps:hover:not(:disabled){background:rgba(255,255,255,.28)}
+#bnw{background:#27ae60;color:#fff}
+#bnw:hover{background:#2ecc71}
+button.gbtn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+#log{background:rgba(0,0,0,.3);border-radius:7px;padding:6px;font-size:11px;color:#90EE90;max-height:52px;overflow-y:auto;margin-top:5px}
+.bdg{display:inline-block;padding:2px 7px;border-radius:9px;font-size:10px;font-weight:700}
+.bd0{background:#ffd700;color:#1a1a1a}.bd1{background:#c0c0c0;color:#1a1a1a}.bd2{background:#cd7f32;color:#fff}.bd3{background:#8B0000;color:#fff}
+#ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:200;flex-direction:column;gap:10px}
+#ov.show{display:flex}
+#mdl{background:#1a472a;border:3px solid #ffd700;border-radius:14px;padding:24px 36px;text-align:center;max-width:380px;width:90%}
+#mt{font-size:28px;font-weight:700;color:#ffd700;margin-bottom:8px}
+#mb{font-size:14px;color:#ccc;margin-bottom:20px;line-height:1.7}
+.xui{background:#1a472a;border-radius:14px;padding:20px 28px;text-align:center;max-width:420px;width:92%}
+#xui1{border:3px solid #4CAF50}
+#xui2{border:3px solid #e74c3c}
+.xt{font-size:18px;font-weight:700;margin-bottom:8px}
+.xd{font-size:12px;color:#ccc;margin-bottom:12px}
+.xc{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.xb{padding:8px 24px;font-size:14px;font-weight:700;border-radius:8px;border:none;cursor:pointer}
+#xb1{background:#4CAF50;color:#fff}
+#xb2{background:#e74c3c;color:#fff}
+.rb{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;background:rgba(255,215,0,.2);color:#ffd700;border:1px solid rgba(255,215,0,.4);margin:1px}
+@media(max-width:560px){.card{width:38px;height:56px}.cn{font-size:14px}#tbl{grid-template-columns:100px 1fr 100px}}
+</style>
+</head>
+<body>
+
+<!-- ロビー -->
+<div id="lobby">
+  <h1>🃏 大富豪</h1>
+  <input id="name-input" placeholder="あなたの名前を入力" maxlength="12">
+  <button class="lobby-btn" id="btn-create" onclick="createRoom()">ルームを作る</button>
+  <div class="or-divider">── または ──</div>
+  <div id="room-id-input-wrap">
+    <input id="room-id-input" placeholder="ルームID（例：ABC123）" maxlength="6" style="text-transform:uppercase">
+    <button class="lobby-btn" id="btn-join-confirm" onclick="joinRoom()">参加する</button>
+  </div>
+  <button class="lobby-btn" id="btn-join" onclick="showJoinInput()">ルームに参加する</button>
+  <div id="lobby-status"></div>
+</div>
+
+<!-- 待機室 -->
+<div id="waiting">
+  <h2>待機中...</h2>
+  <div id="room-code-display">
+    <div class="label">ルームID（友達に教えてね）</div>
+    <div class="code" id="room-code-text">------</div>
+    <button id="copy-btn" onclick="copyRoomId()">コピー</button>
+  </div>
+  <div id="seat-list"></div>
+  <button id="btn-start" onclick="startGame()">ゲーム開始！</button>
+  <div id="waiting-status">友達の参加を待っています... (最大4人 / 2人から開始可能)</div>
+</div>
+
+<!-- ゲーム画面 -->
+<div id="game">
+  <div id="hdr">
+    <h1>🃏 大富豪</h1>
+    <div id="sbar">
+      ラウンド <span id="rnum">1</span> <span id="revi"></span>
+      <button id="mute-btn" onclick="toggleMute()">🔊</button>
+    </div>
+  </div>
+  <div id="tbl">
+    <div class="cp" id="p2" style="grid-column:1/4">
+      <div class="pnm" id="n2">-</div><div class="prk" id="r2"></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+        <div class="pct" id="c2">0</div><div class="bks" id="b2"></div>
+      </div>
+    </div>
+    <div class="cp" id="p1"><div class="pnm" id="n1">-</div><div class="prk" id="r1"></div><div class="pct" id="c1">0</div><div class="bks" id="b1"></div></div>
+    <div id="ctr">
+      <div id="pla">
+        <div style="font-size:11px;color:#888;margin-bottom:6px">場のカード</div>
+        <div id="pld"><span style="color:#555;font-size:12px">── 場にカードなし ──</span></div>
+      </div>
+      <div id="tlbl">-</div>
+      <div id="elbl"></div>
+      <div id="slbl"></div>
+      <div style="font-size:10px;color:#888;text-align:center">
+        <span class="rb">階段</span><span class="rb">8切り</span><span class="rb">11バック</span><span class="rb">革命</span><span class="rb">スペ3返し</span><span class="rb">縛り</span><span class="rb">7渡し</span><span class="rb">5スキップ</span><span class="rb">10捨て</span>
+      </div>
+    </div>
+    <div class="cp" id="p3"><div class="pnm" id="n3">-</div><div class="prk" id="r3"></div><div class="pct" id="c3">0</div><div class="bks" id="b3"></div></div>
+    <div id="btm">
+      <div id="ha">
+        <div id="hlbl">あなたの手札 (0枚)</div>
+        <div id="hnd"></div>
+        <div id="bts">
+          <button class="gbtn" id="bpl" onclick="playSelected()" disabled>出す</button>
+          <button class="gbtn" id="bps" onclick="doPass()" disabled>パス</button>
+          <button class="gbtn" id="bnw" onclick="nextGame()" style="display:none">次のゲーム</button>
+        </div>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- オーバーレイ -->
+<div id="ov">
+  <div id="mdl" style="display:none"><div id="mt"></div><div id="mb"></div><button onclick="nextGame()" style="background:#ffd700;color:#1a1a1a;padding:10px 28px;font-size:15px">次のゲーム</button></div>
+  <div class="xui" id="xui1" style="display:none">
+    <div class="xt" id="xt1" style="color:#4CAF50"></div><div class="xd" id="xd1"></div><div class="xc" id="xc1"></div><button class="xb" id="xb1">確定</button>
+  </div>
+  <div class="xui" id="xui2" style="display:none">
+    <div class="xt" style="color:#e74c3c">10捨て！</div><div class="xd" id="xd2"></div><div class="xc" id="xc2"></div><button class="xb" id="xb2" onclick="confirmDiscard()">捨てる</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ===== 音声 =====
+let AC=null,muted=false;
+function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
+function toggleMute(){muted=!muted;document.getElementById('mute-btn').textContent=muted?'🔇':'🔊';}
+function sfx(type){
+  if(muted)return;
+  try{
+    const ac=getAC(),t=ac.currentTime;
+    const play=(freq,wv,dur,vol,startF,endF)=>{
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type=wv;o.frequency.setValueAtTime(startF||freq,t);
+      if(endF)o.frequency.exponentialRampToValueAtTime(endF,t+dur);
+      g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+dur+0.01);
+    };
+    if(type==='card'){
+      const buf=ac.createBuffer(1,ac.sampleRate*0.08,ac.sampleRate);const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+      const src=ac.createBufferSource();src.buffer=buf;
+      const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=3000;
+      const g=ac.createGain();g.gain.setValueAtTime(0.35,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+      src.connect(f);f.connect(g);g.connect(ac.destination);src.start(t);
+    }else if(type==='select'){play(1200,'square',0.04,0.12,1200,800);}
+    else if(type==='pass'){play(220,'sine',0.15,0.2,220,110);}
+    else if(type==='eight'){
+      play(220,'triangle',0.5,0.18);play(330,'triangle',0.5,0.18);play(440,'triangle',0.5,0.18);
+    }else if(type==='revolution'){
+      for(let i=0;i<4;i++){const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(400-i*60,t+i*0.07);o.frequency.exponentialRampToValueAtTime((400-i*60)*0.4,t+i*0.07+0.15);g.gain.setValueAtTime(0.25,t+i*0.07);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.07+0.25);o.connect(g);g.connect(ac.destination);o.start(t+i*0.07);o.stop(t+i*0.07+0.3);}
+    }else if(type==='spade3'){
+      [523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*0.06);g.gain.linearRampToValueAtTime(0.22,t+i*0.06+0.03);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.06+0.25);o.connect(g);g.connect(ac.destination);o.start(t+i*0.06);o.stop(t+i*0.06+0.3);});
+    }else if(type==='eleven'){play(300,'sine',0.3,0.25,300,1200);}
+    else if(type==='seven'){[392,494,587,740].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+i*0.05);g.gain.linearRampToValueAtTime(0.2,t+i*0.05+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.05+0.35);o.connect(g);g.connect(ac.destination);o.start(t+i*0.05);o.stop(t+i*0.05+0.4);});}
+    else if(type==='five'){play(800,'sawtooth',0.18,0.2,800,200);}
+    else if(type==='ten'){play(600,'triangle',0.2,0.18,600,150);}
+    else if(type==='win'){const mel=[523,659,784,1047,784,1047],dur=[0.1,0.1,0.1,0.2,0.05,0.3];let cur=t;mel.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(0.15,cur);g.gain.exponentialRampToValueAtTime(0.001,cur+dur[i]-0.01);o.connect(g);g.connect(ac.destination);o.start(cur);o.stop(cur+dur[i]);cur+=dur[i];});}
+    else if(type==='lose'){play(300,'sawtooth',0.65,0.25,300,60);}
+    else if(type==='foul'){[160,155,150].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(0.3,t+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.12+0.1);o.connect(g);g.connect(ac.destination);o.start(t+i*0.12);o.stop(t+i*0.12+0.15);});}
+  }catch(e){}
+}
+
+// ===== Socket.IO =====
+const socket = io();
+let mySeat = -1;
+let myName = '';
+let myRoomId = '';
+let gameState = null;
+let SEL = [], EXSEL = [], DISSEL = [];
+
+// ===== ロビー =====
+function createRoom() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) { setLobbyStatus('名前を入力してください'); return; }
+  myName = name;
+  socket.emit('createRoom', { name }, (res) => {
+    if (!res.ok) { setLobbyStatus(res.msg || 'エラー'); return; }
+    myRoomId = res.roomId;
+    mySeat = 0;
+    showWaiting(res.roomId);
+  });
+}
+function showJoinInput() {
+  document.getElementById('room-id-input-wrap').style.display = 'flex';
+  document.getElementById('btn-join').style.display = 'none';
+}
+function joinRoom() {
+  const name = document.getElementById('name-input').value.trim();
+  const roomId = document.getElementById('room-id-input').value.trim().toUpperCase();
+  if (!name) { setLobbyStatus('名前を入力してください'); return; }
+  if (!roomId) { setLobbyStatus('ルームIDを入力してください'); return; }
+  myName = name; myRoomId = roomId;
+  socket.emit('joinRoom', { roomId, name }, (res) => {
+    if (!res.ok) { setLobbyStatus(res.msg || 'エラー'); return; }
+    mySeat = res.seatIndex;
+    showWaiting(roomId);
+  });
+}
+function setLobbyStatus(msg) { document.getElementById('lobby-status').textContent = msg; }
+function showWaiting(roomId) {
+  document.getElementById('lobby').style.display = 'none';
+  document.getElementById('waiting').style.display = 'flex';
+  document.getElementById('room-code-text').textContent = roomId;
+  if (mySeat === 0) document.getElementById('btn-start').style.display = 'block';
+}
+function copyRoomId() {
+  navigator.clipboard.writeText(myRoomId).then(() => {
+    document.getElementById('copy-btn').textContent = 'コピー済！';
+    setTimeout(() => document.getElementById('copy-btn').textContent = 'コピー', 2000);
+  });
+}
+function startGame() {
+  socket.emit('startGame', {}, (res) => {
+    if (!res || !res.ok) alert(res?.msg || 'エラー');
+  });
+}
+function nextGame() {
+  document.getElementById('ov').classList.remove('show');
+  document.getElementById('mdl').style.display = 'none';
+  socket.emit('nextGame', {});
+}
+
+// ===== サーバーからの更新受信 =====
+socket.on('roomUpdate', (data) => {
+  if (!data.started) {
+    // 待機室更新
+    const list = document.getElementById('seat-list');
+    list.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const p = data.players.find(p => p.seat === i);
+      const div = document.createElement('div');
+      div.className = 'seat-item';
+      div.innerHTML = `<span class="seat-num">座席 ${i + 1}</span>
+        <span class="${p ? 'seat-name' : 'seat-empty'}">${p ? (p.seat === mySeat ? '⭐ ' + p.name + '（あなた）' : p.name) : '空席'}</span>`;
+      list.appendChild(div);
+    }
+    document.getElementById('waiting-status').textContent =
+      data.players.length >= 2 ? `${data.players.length}人参加中 — ホストがゲームを開始できます` : '友達の参加を待っています...';
+    return;
+  }
+
+  // ゲーム画面
+  gameState = data;
+  document.getElementById('waiting').style.display = 'none';
+  document.getElementById('game').style.display = 'flex';
+  renderGame(data);
+});
+
+// ===== ゲーム描画 =====
+function isRed(c) { return c.suit === '♦' || c.suit === '♥'; }
+
+function mkCard(c, clickable, sel, ocl) {
+  let cls = 'card' + (c.isJoker ? ' jok' : isRed(c) ? ' red' : '') + (sel ? ' sel' : '') + (clickable ? '' : ' nc');
+  return `<div class="${cls}" ${ocl ? `onclick="${ocl}"` : ''}><div class="cs">${c.isJoker ? '★' : c.suit}</div><div class="cn">${c.isJoker ? 'JOK' : c.num}</div></div>`;
+}
+
+function renderGame(data) {
+  const { players, lastCards, currentTurn, revolution, elevenBack, shibariSuit, gameOver, log, round, rankOrder } = data;
+  const myP = players[mySeat];
+
+  document.getElementById('rnum').textContent = round || 1;
+  let rt = '';
+  if (revolution && elevenBack) rt = '🔄革命/🔁11バック';
+  else if (revolution) rt = '🔄革命中';
+  else if (elevenBack) rt = '🔁11バック中';
+  document.getElementById('revi').textContent = rt;
+
+  // 4席を「自分を下に」並べ替えて表示
+  // 席順: 自分=下(btm), 左=(mySeat+1)%4=左, 上=(mySeat+2)%4=上, 右=(mySeat+3)%4=右
+  const leftSeat = (mySeat + 1) % 4;
+  const topSeat = (mySeat + 2) % 4;
+  const rightSeat = (mySeat + 3) % 4;
+
+  renderCPUPanel('p1', 'n1', 'r1', 'c1', 'b1', players[leftSeat], leftSeat, currentTurn);
+  renderCPUPanel('p2', 'n2', 'r2', 'c2', 'b2', players[topSeat], topSeat, currentTurn);
+  renderCPUPanel('p3', 'n3', 'r3', 'c3', 'b3', players[rightSeat], rightSeat, currentTurn);
+
+  // 自分の手札
+  document.getElementById('hlbl').textContent = `あなたの手札 (${myP.hand.length}枚)`;
+  document.getElementById('hnd').innerHTML = myP.hand.map(c =>
+    mkCard(c, true, SEL.includes(c.id), `tgSel('${c.id}')`)
+  ).join('') || '<span style="color:#555;font-size:12px">手札なし</span>';
+
+  // 場のカード
+  document.getElementById('pld').innerHTML = lastCards && lastCards.length
+    ? lastCards.map(c => mkCard(c, false)).join('')
+    : '<span style="color:#555;font-size:12px">── 場にカードなし ──</span>';
+
+  // ターン表示
+  const curPlayer = players[currentTurn];
+  document.getElementById('tlbl').textContent = gameOver
+    ? 'ゲーム終了！'
+    : `${curPlayer ? curPlayer.name : '?'}のターン${currentTurn === mySeat ? '（あなた）' : ''}`;
+
+  // 縛り
+  document.getElementById('slbl').textContent = shibariSuit ? `🔒 ${shibariSuit}縛り中` : '';
+
+  // ボタン制御
+  const myTurn = currentTurn === mySeat && !gameOver && myP.rank === null && !data.sevenPassActive && !data.tenDiscardActive;
+  document.getElementById('bpl').disabled = !myTurn;
+  document.getElementById('bps').disabled = !myTurn || !lastCards || !lastCards.length;
+  document.getElementById('bnw').style.display = gameOver && mySeat === 0 ? 'inline-block' : 'none';
+
+  // ログ
+  document.getElementById('log').innerHTML = (log || []).slice(-5).map(l => `<div>${l}</div>`).join('');
+
+  // ゲームオーバー表示
+  if (gameOver && rankOrder && rankOrder.length >= 4) {
+    showResult(players, rankOrder);
+  }
+
+  // 特殊アクションUI
+  if (data.sevenPassActive && data.sevenPassFrom === mySeat) {
+    show7UI(data.sevenPassTo < players.length ? players[data.sevenPassTo].name : '?', data.sevenPassMax);
+  } else if (data.tenDiscardActive && data.tenDiscardFrom === mySeat) {
+    show10UI(data.tenDiscardMax);
+  } else {
+    // UIを閉じる
+    if (!gameOver) {
+      document.getElementById('xui1').style.display = 'none';
+      document.getElementById('xui2').style.display = 'none';
+      if (!document.getElementById('mdl').style.display || document.getElementById('mdl').style.display === 'none') {
+        document.getElementById('ov').classList.remove('show');
+      }
+    }
+  }
+}
+
+function renderCPUPanel(pid, nid, rid, cid, bid, p, seat, currentTurn) {
+  if (!p) return;
+  const el = document.getElementById(pid);
+  el.className = 'cp' + (currentTurn === seat && p.rank === null ? ' active' : p.passed ? ' passed' : p.rank !== null ? ' done' : '');
+  document.getElementById(nid).textContent = p.name + (seat === mySeat ? '（あなた）' : '');
+  const RN = ['大富豪', '富豪', '貧民', '大貧民'], RC = ['bd0', 'bd1', 'bd2', 'bd3'];
+  const rel = document.getElementById(rid);
+  if (p.rank !== null) { const r = Math.min(p.rank, 3); rel.innerHTML = `<span class="bdg ${RC[r]}">${RN[r]}</span>`; }
+  else if (p.passed) rel.innerHTML = '<span style="color:#888;font-size:10px">パス</span>';
+  else rel.textContent = '';
+  document.getElementById(cid).textContent = p.handCount;
+  let b = ''; for (let i = 0; i < Math.min(p.handCount, 10); i++) b += '<div class="bk"></div>';
+  document.getElementById(bid).innerHTML = b;
+}
+
+// ===== プレイヤーアクション =====
+function tgSel(id) {
+  if (!gameState || gameState.currentTurn !== mySeat || gameState.gameOver) return;
+  sfx('select');
+  const i = SEL.indexOf(id); i >= 0 ? SEL.splice(i, 1) : SEL.push(id);
+  renderGame(gameState);
+}
+
+function playSelected() {
+  if (!gameState) return;
+  const hand = gameState.players[mySeat].hand;
+  const cards = hand.filter(c => SEL.includes(c.id));
+  if (!cards.length) return;
+  sfx('card');
+  socket.emit('playCards', { cardIds: SEL }, (res) => {
+    if (!res.ok) { document.getElementById('elbl').textContent = res.msg || '出せません'; return; }
+    SEL = [];
+    if (res.effects) {
+      document.getElementById('elbl').textContent = res.effects.join(' ');
+      if (res.effects.some(e => e.includes('革命'))) sfx('revolution');
+      else if (res.effects.some(e => e.includes('8切り'))) sfx('eight');
+      else if (res.effects.some(e => e.includes('11バック'))) sfx('eleven');
+      else if (res.effects.some(e => e.includes('7渡し'))) sfx('seven');
+      else if (res.effects.some(e => e.includes('5スキップ'))) sfx('five');
+      else if (res.effects.some(e => e.includes('10捨て'))) sfx('ten');
+      else if (res.effects.some(e => e.includes('♠3返し'))) sfx('spade3');
+    }
+  });
+}
+
+function doPass() {
+  sfx('pass');
+  socket.emit('pass', {}, (res) => {
+    if (!res.ok) document.getElementById('elbl').textContent = res.msg || 'パスできません';
+  });
+}
+
+// ===== 7渡し =====
+function show7UI(tgtName, maxCount) {
+  EXSEL = [];
+  document.getElementById('xt1').textContent = '7渡し！';
+  document.getElementById('xd1').textContent = `${tgtName}に渡すカードを選んでください（1〜${maxCount}枚）`;
+  render7Cards(maxCount);
+  document.getElementById('xb1').onclick = confirm7;
+  document.getElementById('xui1').style.display = 'block';
+  document.getElementById('ov').classList.add('show');
+}
+function render7Cards(max) {
+  const hand = gameState.players[mySeat].hand;
+  document.getElementById('xc1').innerHTML = hand.map(c => {
+    const s = EXSEL.includes(c.id);
+    return `<div class="card${c.isJoker ? ' jok' : isRed(c) ? ' red' : ''} ${s ? 'sel' : ''}" onclick="tg7Ex('${c.id}',${max})"><div class="cs">${c.isJoker ? '★' : c.suit}</div><div class="cn">${c.isJoker ? 'JOK' : c.num}</div></div>`;
+  }).join('');
+  const b = document.getElementById('xb1');
+  b.disabled = EXSEL.length < 1; b.style.opacity = EXSEL.length >= 1 ? 1 : .4;
+  b.textContent = EXSEL.length >= 1 ? `${EXSEL.length}枚渡す` : '選んでください';
+}
+function tg7Ex(id, max) {
+  const i = EXSEL.indexOf(id); i >= 0 ? EXSEL.splice(i, 1) : EXSEL.length < max && EXSEL.push(id);
+  render7Cards(max);
+}
+function confirm7() {
+  if (EXSEL.length < 1) return;
+  socket.emit('sevenPass', { cardIds: EXSEL }, (res) => {
+    if (!res.ok) { alert(res.msg); return; }
+    EXSEL = [];
+    document.getElementById('xui1').style.display = 'none';
+    document.getElementById('ov').classList.remove('show');
+  });
+}
+
+// ===== 10捨て =====
+function show10UI(maxCount) {
+  DISSEL = [];
+  document.getElementById('xd2').textContent = `捨てるカードを選んでください（1〜${maxCount}枚）`;
+  render10Cards(maxCount);
+  document.getElementById('xui2').style.display = 'block';
+  document.getElementById('ov').classList.add('show');
+}
+function render10Cards(max) {
+  const hand = gameState.players[mySeat].hand;
+  document.getElementById('xc2').innerHTML = hand.map(c => {
+    const s = DISSEL.includes(c.id);
+    return `<div class="card${c.isJoker ? ' jok' : isRed(c) ? ' red' : ''} ${s ? 'sel' : ''}" onclick="tgDis('${c.id}',${max})"><div class="cs">${c.isJoker ? '★' : c.suit}</div><div class="cn">${c.isJoker ? 'JOK' : c.num}</div></div>`;
+  }).join('') || '<span style="color:#aaa">手札なし</span>';
+  const b = document.getElementById('xb2');
+  b.disabled = DISSEL.length < 1; b.style.opacity = DISSEL.length >= 1 ? 1 : .4;
+  b.textContent = DISSEL.length >= 1 ? `${DISSEL.length}枚捨てる` : '選んでください';
+}
+function tgDis(id, max) {
+  const i = DISSEL.indexOf(id); i >= 0 ? DISSEL.splice(i, 1) : DISSEL.length < max && DISSEL.push(id);
+  render10Cards(max);
+}
+function confirmDiscard() {
+  if (DISSEL.length < 1) return;
+  socket.emit('tenDiscard', { cardIds: DISSEL }, (res) => {
+    if (!res.ok) { alert(res.msg); return; }
+    DISSEL = [];
+    document.getElementById('xui2').style.display = 'none';
+    document.getElementById('ov').classList.remove('show');
+  });
+}
+
+// ===== 結果表示 =====
+function showResult(players, rankOrder) {
+  const RN = ['大富豪', '富豪', '貧民', '大貧民'], RC = ['bd0', 'bd1', 'bd2', 'bd3'];
+  const myRank = players[mySeat].rank;
+  document.getElementById('mt').textContent = myRank === 0 ? '🏆 大富豪！' : myRank === 3 ? '😢 大貧民...' : 'ゲーム終了';
+  document.getElementById('mb').innerHTML = rankOrder.map(pi => {
+    const p = players[pi]; const r = Math.min(p.rank, 3);
+    return `<div style="${pi === mySeat ? 'color:#ffd700;font-weight:700' : ''}"><span class="bdg ${RC[r]}">${RN[r]}</span> ${p.name}</div>`;
+  }).join('');
+  document.getElementById('mdl').style.display = 'block';
+  document.getElementById('xui1').style.display = 'none';
+  document.getElementById('xui2').style.display = 'none';
+  document.getElementById('ov').classList.add('show');
+  if (myRank === 0) sfx('win'); else if (myRank === 3) sfx('lose');
+}
+</script>
+</body>
+</html>
