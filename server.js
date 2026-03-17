@@ -185,8 +185,6 @@ function initGame(room) {
   for (let i=0;i<deck.length;i++) hands[i%4].push(deck[i]);
   for (let i=0;i<4;i++) hands[i] = sortHand(hands[i]);
 
-  const prevRanks = room.G ? room.G.rankOrder : null;
-
   room.G = {
     round: (room.G?.round||0)+1,
     players: room.players.map((p,i) => ({
@@ -201,6 +199,9 @@ function initGame(room) {
     sevenPassActive: false, sevenPassMax: 0, sevenPassFrom: -1, sevenPassTo: -1, sevenPassNextTurn: -1,
     tenDiscardActive: false, tenDiscardMax: 0, tenDiscardFrom: -1, tenDiscardNextTurn: -1,
     pendingEffects: null,
+    // カード交換フェーズ用
+    exchangePhase: false,
+    exchangeInfo: null, // { humanPidx, role, partnerName, gotCards, needCount }
   };
 
   // ♦3スタート
@@ -209,32 +210,102 @@ function initGame(room) {
     if (room.G.players[i].hand.some(c=>c.suit==='♦'&&c.num==='3')) { first=i; break; }
   }
   room.G.currentTurn = first;
-
-  // 2ラウンド目以降カード交換
-  if (prevRanks && prevRanks.length===4) {
-    doExchange(room.G, prevRanks);
-  }
 }
 
-function doExchange(G, prevRanks) {
-  // prevRanks = [rank0のpidx, rank1のpidx, rank2のpidx, rank3のpidx]
-  const daifu=prevRanks[0], fugo=prevRanks[1], hinmin=prevRanks[2], daihin=prevRanks[3];
-  function autoEx(upper, lower, cnt) {
-    const strong = sortHand(G.players[lower].hand).slice(-cnt);
-    strong.forEach(c => { const i=G.players[lower].hand.findIndex(h=>h.id===c.id); if(i>=0)G.players[lower].hand.splice(i,1); });
-    const weak = sortHand(G.players[upper].hand).slice(0,cnt);
-    weak.forEach(c => { const i=G.players[upper].hand.findIndex(h=>h.id===c.id); if(i>=0)G.players[upper].hand.splice(i,1); });
-    strong.forEach(c=>G.players[upper].hand.push(c));
-    weak.forEach(c=>G.players[lower].hand.push(c));
-    G.players[upper].hand = sortHand(G.players[upper].hand);
-    G.players[lower].hand = sortHand(G.players[lower].hand);
+// CPU同士の自動交換
+function autoExCPU(G, upper, lower, cnt) {
+  const strong = sortHand(G.players[lower].hand).slice(-cnt);
+  strong.forEach(c => { const i=G.players[lower].hand.findIndex(h=>h.id===c.id); if(i>=0)G.players[lower].hand.splice(i,1); });
+  const weak = sortHand(G.players[upper].hand).slice(0,cnt);
+  weak.forEach(c => { const i=G.players[upper].hand.findIndex(h=>h.id===c.id); if(i>=0)G.players[upper].hand.splice(i,1); });
+  strong.forEach(c=>G.players[upper].hand.push(c));
+  weak.forEach(c=>G.players[lower].hand.push(c));
+  G.players[upper].hand = sortHand(G.players[upper].hand);
+  G.players[lower].hand = sortHand(G.players[lower].hand);
+}
+
+// カード交換フェーズ開始
+// prevRankOrder = [1位pidx, 2位pidx, 3位pidx, 4位pidx]
+function startExchangePhase(room, prevRankOrder) {
+  const G = room.G;
+  const daifu=prevRankOrder[0], fugo=prevRankOrder[1], hinmin=prevRankOrder[2], daihin=prevRankOrder[3];
+
+  // 人間プレイヤーのpidxを探す（CPUはisCPU=true）
+  const humanPidx = room.players.findIndex(p=>!p.isCPU);
+
+  if (humanPidx < 0) {
+    // 全員CPU→全自動
+    autoExCPU(G, daifu, daihin, 2);
+    autoExCPU(G, fugo, hinmin, 1);
+    addLog(G, 'カード交換完了！');
+    return false; // 交換フェーズ不要
   }
-  autoEx(daifu, daihin, 2);
-  autoEx(fugo, hinmin, 1);
+
+  const humanRank = prevRankOrder.indexOf(humanPidx); // 0=大富豪,1=富豪,2=貧民,3=大貧民
+
+  // 人間が関係しないペアはCPU同士で自動交換
+  if (humanRank === 0 || humanRank === 1) {
+    // 大富豪 or 富豪 → 相手ペアを先に自動交換
+    if (humanRank === 0 && fugo !== humanPidx && hinmin !== humanPidx) autoExCPU(G, fugo, hinmin, 1);
+    if (humanRank === 1 && daifu !== humanPidx && daihin !== humanPidx) autoExCPU(G, daifu, daihin, 2);
+
+    // 人間が渡すカードを選ぶ（もらうカードは先に受け取る）
+    const partnerPidx = humanRank === 0 ? daihin : hinmin;
+    const cnt = humanRank === 0 ? 2 : 1;
+    // 相手の強いカードを自動で人間に渡す
+    const gotCards = sortHand(G.players[partnerPidx].hand).slice(-cnt);
+    gotCards.forEach(c => { const i=G.players[partnerPidx].hand.findIndex(h=>h.id===c.id); if(i>=0)G.players[partnerPidx].hand.splice(i,1); });
+    G.players[humanPidx].hand = sortHand([...G.players[humanPidx].hand, ...gotCards]);
+
+    G.exchangePhase = true;
+    G.exchangeInfo = {
+      humanPidx,
+      role: humanRank,               // 0=大富豪,1=富豪
+      partnerPidx,
+      partnerName: G.players[partnerPidx].name,
+      gotCards,
+      needCount: cnt,
+    };
+    return true;
+
+  } else {
+    // 貧民 or 大貧民 → 相手ペアを先に自動交換
+    if (humanRank === 2 && daifu !== humanPidx && daihin !== humanPidx) autoExCPU(G, daifu, daihin, 2);
+    if (humanRank === 3 && fugo !== humanPidx && hinmin !== humanPidx) autoExCPU(G, fugo, hinmin, 1);
+
+    // 人間の強いカードを自動で相手に渡す（人間は選べない）
+    const partnerPidx = humanRank === 2 ? fugo : daifu;
+    const cnt = humanRank === 2 ? 1 : 2;
+    const takenCards = sortHand(G.players[humanPidx].hand).slice(-cnt);
+    takenCards.forEach(c => { const i=G.players[humanPidx].hand.findIndex(h=>h.id===c.id); if(i>=0)G.players[humanPidx].hand.splice(i,1); });
+    // 相手の弱いカードを受け取る
+    const gotCards = sortHand(G.players[partnerPidx].hand).slice(0, cnt);
+    gotCards.forEach(c => { const i=G.players[partnerPidx].hand.findIndex(h=>h.id===c.id); if(i>=0)G.players[partnerPidx].hand.splice(i,1); });
+    G.players[partnerPidx].hand = sortHand([...G.players[partnerPidx].hand, ...takenCards]);
+    G.players[humanPidx].hand = sortHand([...G.players[humanPidx].hand, ...gotCards]);
+    G.players[partnerPidx].hand = sortHand(G.players[partnerPidx].hand);
+
+    G.exchangePhase = true;
+    G.exchangeInfo = {
+      humanPidx,
+      role: humanRank,               // 2=貧民,3=大貧民
+      partnerPidx,
+      partnerName: G.players[partnerPidx].name,
+      takenCards,
+      gotCards,
+      needCount: cnt,
+    };
+    return true;
+  }
 }
 
 // ===== ゲーム状態をクライアント用に整形（手札は自分のだけ） =====
 function stateForPlayer(G, pidx) {
+  // exchangeInfoは該当プレイヤーにだけ送る
+  let exchangeInfo = null;
+  if (G.exchangePhase && G.exchangeInfo && G.exchangeInfo.humanPidx === pidx) {
+    exchangeInfo = G.exchangeInfo;
+  }
   return {
     round: G.round,
     players: G.players.map((p,i) => ({
@@ -262,6 +333,8 @@ function stateForPlayer(G, pidx) {
     tenDiscardActive: G.tenDiscardActive,
     tenDiscardMax: G.tenDiscardMax,
     tenDiscardFrom: G.tenDiscardFrom,
+    exchangePhase: G.exchangePhase,
+    exchangeInfo,
     myIndex: pidx,
   };
 }
@@ -597,6 +670,37 @@ io.on('connection', (socket) => {
     startGame(room);
   });
 
+  // カード交換確認（大富豪・富豪が渡すカードを選んだとき）
+  socket.on('exchangeConfirm', ({ giveCardIds }) => {
+    const room = rooms[socket.data.roomCode];
+    if (!room||!room.G||!room.G.exchangePhase) return;
+    const G = room.G;
+    const pidx = socket.data.playerIndex;
+    if (!G.exchangeInfo || G.exchangeInfo.humanPidx !== pidx) return;
+
+    const info = G.exchangeInfo;
+    const give = giveCardIds.map(id=>G.players[pidx].hand.find(c=>c.id===id)).filter(Boolean);
+    if (give.length !== info.needCount) return;
+
+    // 渡す
+    give.forEach(c=>{const i=G.players[pidx].hand.findIndex(h=>h.id===c.id);if(i>=0)G.players[pidx].hand.splice(i,1);});
+    G.players[info.partnerPidx].hand = sortHand([...G.players[info.partnerPidx].hand,...give]);
+    G.players[pidx].hand = sortHand(G.players[pidx].hand);
+
+    addLog(G,'カード交換完了！');
+    finishExchangeAndStart(room);
+  });
+
+  // カード交換確認（貧民・大貧民が確認ボタンを押したとき）
+  socket.on('exchangeAcknowledge', () => {
+    const room = rooms[socket.data.roomCode];
+    if (!room||!room.G||!room.G.exchangePhase) return;
+    const pidx = socket.data.playerIndex;
+    if (!room.G.exchangeInfo || room.G.exchangeInfo.humanPidx !== pidx) return;
+    addLog(room.G,'カード交換完了！');
+    finishExchangeAndStart(room);
+  });
+
   socket.on('disconnect', () => {
     const code = socket.data.roomCode;
     const room = rooms[code];
@@ -627,13 +731,23 @@ function startGame(room) {
   const prevRankOrder = room.G?.rankOrder?.length===4 ? room.G.rankOrder : null;
   initGame(room);
   if (prevRankOrder) {
-    doExchange(room.G, prevRankOrder);
-    addLog(room.G, 'カード交換完了！');
+    const needsUI = startExchangePhase(room, prevRankOrder);
+    if (needsUI) {
+      // 交換フェーズ中はgameStartを送りUIを表示させる
+      broadcastState(room);
+      io.to(room.code).emit('gameStart');
+      return; // ゲーム開始はexchangeConfirm後
+    }
   }
+  finishExchangeAndStart(room);
+}
+
+function finishExchangeAndStart(room) {
+  room.G.exchangePhase = false;
+  room.G.exchangeInfo = null;
   addLog(room.G, `第${room.G.round}ラウンド開始！♦3を持つ人から`);
   broadcastState(room);
   io.to(room.code).emit('gameStart');
-  // CPUのターンなら自動プレイ開始
   scheduleCpuIfNeeded(room);
 }
 
