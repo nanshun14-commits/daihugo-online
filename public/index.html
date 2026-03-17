@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+
   
-/* ロビー */
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+  /* ロビー */
 #lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;width:100%;max-width:400px}
 #lobby h1{font-size:36px;font-weight:700;color:#ffd700;letter-spacing:3px;margin-bottom:8px}
 #lobby input{width:100%;padding:12px 16px;border-radius:10px;border:2px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;font-size:16px;outline:none}
@@ -16,7 +21,6 @@
 #room-id-input-wrap{display:none;flex-direction:column;gap:8px;width:100%}
 .or-divider{color:#888;font-size:13px;text-align:center}
 #lobby-status{font-size:13px;color:#90EE90;text-align:center;min-height:20px}
-
 /* 待機室 */
 #waiting{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:500px;padding:32px 0}
 #waiting h2{font-size:22px;font-weight:700;color:#ffd700}
@@ -31,13 +35,7 @@
 .seat-empty{color:#555;font-style:italic}
 #btn-start{background:#27ae60;color:#fff;padding:14px 40px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;display:none}
 #btn-start:hover{background:#2ecc71}
-#waiting-status{font-size:13px;color:#90EE90;text-align:center}
-  
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color:#fff;user-select:none;font-size:14px}
+#waiting-status{font-size:13px;color:#90EE90;text-align:center}body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color:#fff;user-select:none;font-size:14px}
 #app{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:8px}
 #hdr{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:920px;padding:4px 0 6px}
 #hdr h1{font-size:20px;font-weight:700;color:#ffd700;letter-spacing:2px}
