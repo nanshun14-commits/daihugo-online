@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color:#fff;user-select:none;font-size:14px}
-/* ===== ロビー ===== */
+/* ロビー */
 #lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;padding:20px}
 #lobby h1{font-size:28px;font-weight:700;color:#ffd700;letter-spacing:3px;margin-bottom:8px}
 .lobby-box{background:rgba(0,0,0,.4);border-radius:14px;padding:24px 32px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px}
@@ -17,14 +17,9 @@ body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color
 .lobby-input:focus{border-color:#ffd700}
 .lobby-input::placeholder{color:#888}
 .lobby-btn{padding:10px;border-radius:8px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
-.btn-create{background:#ffd700;color:#1a1a1a}
-.btn-create:hover{background:#ffe84a;transform:translateY(-2px)}
-.btn-join{background:#27ae60;color:#fff}
-.btn-join:hover{background:#2ecc71;transform:translateY(-2px)}
-.btn-start{background:#e67e22;color:#fff;font-size:16px;padding:12px}
-.btn-start:hover{background:#e74c3c}
-.btn-start:disabled{opacity:.4;cursor:not-allowed;transform:none}
-/* ルーム待機 */
+.btn-create{background:#ffd700;color:#1a1a1a}.btn-create:hover{background:#ffe84a;transform:translateY(-2px)}
+.btn-join{background:#27ae60;color:#fff}.btn-join:hover{background:#2ecc71;transform:translateY(-2px)}
+/* 待機画面 */
 #waiting{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;padding:20px}
 #waiting h2{font-size:22px;font-weight:700;color:#ffd700}
 .room-code-display{background:rgba(0,0,0,.5);border:3px solid #ffd700;border-radius:14px;padding:20px 40px;text-align:center}
@@ -40,7 +35,7 @@ body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color
 .slot-name{font-size:14px;color:#fff}
 .slot-empty{font-size:12px;color:#555;font-style:italic}
 .waiting-msg{font-size:13px;color:#aaa;text-align:center}
-/* ===== ゲーム ===== */
+/* ゲーム */
 #game{display:none;flex-direction:column;align-items:center;min-height:100vh;padding:8px}
 #hdr{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:920px;padding:4px 0 6px}
 #hdr h1{font-size:18px;font-weight:700;color:#ffd700;letter-spacing:2px}
@@ -49,7 +44,7 @@ body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color
 #tbl{width:100%;max-width:920px;display:grid;grid-template-columns:130px 1fr 130px;gap:6px}
 .cp{background:rgba(0,0,0,.4);border-radius:10px;padding:7px;border:2px solid transparent;transition:border-color .3s,opacity .3s}
 .cp.active{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,.4)}
-.cp.passed{opacity:.55}.cp.done{border-color:#888}.cp.myturn{border-color:#4CAF50;box-shadow:0 0 12px rgba(76,175,80,.4)}
+.cp.passed{opacity:.55}.cp.done{border-color:#888}
 .pnm{font-size:11px;font-weight:700;color:#ffd700;text-align:center;margin-bottom:2px}
 .prk{font-size:10px;text-align:center;margin-bottom:3px;min-height:14px}
 .pct{font-size:22px;font-weight:700;text-align:center}
@@ -62,7 +57,7 @@ body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color
 #prev-area{display:flex;align-items:center;gap:8px;margin-top:6px;min-height:28px}
 #prev-cards{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
 .prev-card{width:28px;height:40px;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #aaa;background:#f8f8f8;color:#333;font-size:8px;font-weight:700;flex-shrink:0;opacity:.75}
-.prev-card.red{color:#c00}.prev-card.jok{background:linear-gradient(135deg,#ff6b6b,#ffd700)!important;color:#1a1a1a!important}
+.prev-card.red{color:#c00}.prev-card.jok{background:linear-gradient(135deg,#ff6b6b,#ffd700)!important;color:#1a1a1a!important;border-color:#e00!important}
 .prev-who{font-size:10px;color:#aaa}
 #tlbl{font-size:12px;font-weight:600;color:#90EE90;text-align:center}
 #elbl{font-size:11px;color:#ffd700;text-align:center;min-height:16px}
@@ -75,8 +70,13 @@ body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color
 .cs{font-size:13px;line-height:1}.cn{font-size:18px;font-weight:700;line-height:1}
 .card.jok{background:linear-gradient(135deg,#ff6b6b,#ffd700)!important;color:#1a1a1a!important;border-color:#e00!important}
 .card.nc{cursor:default}.card.nc:hover{transform:none}
-@keyframes cardSlide{0%{opacity:0;transform:translateY(-50px) scale(.8)}100%{opacity:1;transform:none}}
-.card.play-anim{animation:cardSlide .6s cubic-bezier(0.16,1,0.3,1) both}
+/* アニメーション */
+@keyframes cardSlide{0%{opacity:0;transform:translateY(-60px) scale(0.75)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.card.play-anim{animation:cardSlide 1.0s cubic-bezier(0.16,1,0.3,1) both}
+.card.play-anim:nth-child(1){animation-delay:0s}.card.play-anim:nth-child(2){animation-delay:0.1s}.card.play-anim:nth-child(3){animation-delay:0.2s}.card.play-anim:nth-child(4){animation-delay:0.3s}.card.play-anim:nth-child(5){animation-delay:0.4s}
+@keyframes clearSlide{0%{opacity:1;transform:translateX(0) rotate(0deg)}100%{opacity:0;transform:translateX(120px) rotate(8deg)}}
+.card.clear-anim{animation:clearSlide 1.75s cubic-bezier(0.4,0,1,1) both;pointer-events:none}
+.card.clear-anim:nth-child(1){animation-delay:0s}.card.clear-anim:nth-child(2){animation-delay:0.05s}.card.clear-anim:nth-child(3){animation-delay:0.1s}.card.clear-anim:nth-child(4){animation-delay:0.15s}.card.clear-anim:nth-child(5){animation-delay:0.2s}
 #ha{background:rgba(0,0,0,.4);border-radius:10px;padding:10px}
 #hlbl{font-size:11px;color:#90EE90;text-align:center;margin-bottom:6px;font-weight:600}
 #hnd{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:80px;align-items:flex-end}
@@ -108,7 +108,6 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 </head>
 <body>
 
-<!-- あなたのターンバナー -->
 <div id="myturn-banner">🃏 あなたのターンです！</div>
 
 <!-- ロビー -->
@@ -143,7 +142,7 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
     <div id="player-slots"></div>
   </div>
   <div class="waiting-msg" id="waiting-msg">あと<span id="need-count">3</span>人待っています...</div>
-  <button class="lobby-btn btn-start" id="start-btn" disabled onclick="requestNextGame()">▶ ゲーム開始（ホストのみ）</button>
+  <button class="lobby-btn" style="background:#ffd700;color:#1a1a1a;font-size:16px;padding:12px;opacity:.4" id="start-btn" disabled onclick="requestNextGame()">▶ ゲーム開始（ホストのみ）</button>
   <button class="lobby-btn" id="start-cpu-btn" style="background:#8e44ad;color:#fff;display:none" onclick="startWithCPU()">🤖 今すぐ開始（空席をCPUで補充）</button>
 </div>
 
@@ -156,7 +155,6 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
     </div>
   </div>
   <div id="tbl">
-    <!-- CPU配置はJS側でmyIndexから決定 -->
     <div class="cp" id="p-top" style="grid-column:1/4">
       <div class="pnm" id="n-top">-</div><div class="prk" id="r-top"></div>
       <div style="display:flex;align-items:center;justify-content:center;gap:8px">
@@ -175,7 +173,7 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
       </div>
       <div id="tlbl">接続中...</div><div id="elbl"></div><div id="slbl"></div>
       <div style="font-size:10px;color:#888;text-align:center">
-        <span class="rb">階段</span><span class="rb">8切り</span><span class="rb">11バック</span><span class="rb">革命</span><span class="rb">スペ3返し</span><span class="rb">縛り</span><span class="rb">7渡し</span><span class="rb">5スキップ</span><span class="rb">10捨て</span>
+        <span class="rb">階段</span><span class="rb">8切り</span><span class="rb">11バック</span><span class="rb">革命</span><span class="rb">スペ3返し</span><span class="rb">スート縛り</span><span class="rb">数字縛り</span><span class="rb">7渡し</span><span class="rb">5スキップ</span><span class="rb">10捨て</span>
       </div>
     </div>
     <div class="cp" id="p-right"><div class="pnm" id="n-right">-</div><div class="prk" id="r-right"></div><div class="pct" id="c-right">0</div><div class="bks" id="b-right"></div></div>
@@ -195,7 +193,8 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 
 <!-- オーバーレイ -->
 <div id="ov">
-  <div id="mdl" style="display:none"><div id="mt"></div><div id="mb"></div>
+  <div id="mdl" style="display:none">
+    <div id="mt"></div><div id="mb"></div>
     <button onclick="requestNextGame()" style="background:#ffd700;color:#1a1a1a;padding:10px 28px;font-size:15px" id="next-btn">次のゲーム</button>
   </div>
   <div class="xui" id="xui1" style="display:none">
@@ -213,41 +212,76 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 </div>
 
 <script>
-// ===== Socket =====
 const socket = io();
-let G = null;       // 最新のゲーム状態
-let myIndex = -1;   // 自分のプレイヤーインデックス
-let isHost = false;
-let roomCode = '';
+let G = null, myIndex = -1, isHost = false, roomCode = '';
 let SEL = [], selCnt = 0;
-let EXSEL = [], DISSEL = [];
+let _7sel = [], _7max = 0;
+let _10sel = [], _10max = 0;
+let prevTurn = -1;
+let prevLastCardsLen = 0; // 場クリア検出用
 
-// ===== Audio =====
+// ===== 効果音（全種類） =====
 let AC = null, muted = false;
 function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
 function toggleMute(){muted=!muted;document.getElementById('mute-btn').textContent=muted?'🔇':'🔊';}
-function sfx(t){if(muted)return;try{const ac=getAC(),ct=ac.currentTime;if(t==='select'){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.setValueAtTime(1200,ct);o.frequency.exponentialRampToValueAtTime(800,ct+.04);g.gain.setValueAtTime(.12,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.04);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.05);}else if(t==='card'){const b=ac.createBuffer(1,ac.sampleRate*.08,ac.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);const s=ac.createBufferSource();s.buffer=b;const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=3000;const gg=ac.createGain();gg.gain.setValueAtTime(.35,ct);gg.gain.exponentialRampToValueAtTime(.001,ct+.08);s.connect(f);f.connect(gg);gg.connect(ac.destination);s.start(ct);}else if(t==='pass'){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(220,ct);o.frequency.exponentialRampToValueAtTime(110,ct+.15);g.gain.setValueAtTime(.2,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.15);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.16);}else if(t==='win'){const mel=[523,659,784,1047,784,1047],dur=[.1,.1,.1,.2,.05,.3];let c=ct;mel.forEach((f,i)=>{const o=ac.createOscillator(),gg=ac.createGain();o.type='square';o.frequency.value=f;gg.gain.setValueAtTime(.15,c);gg.gain.exponentialRampToValueAtTime(.001,c+dur[i]-.01);o.connect(gg);gg.connect(ac.destination);o.start(c);o.stop(c+dur[i]);c+=dur[i];});}else if(t==='lose'){const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(300,ct);o.frequency.exponentialRampToValueAtTime(60,ct+.6);g.gain.setValueAtTime(.25,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.65);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.7);}else if(t==='revolution'){for(let i=0;i<4;i++){const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(400-i*60,ct+i*.07);o.frequency.exponentialRampToValueAtTime((400-i*60)*.4,ct+i*.07+.15);g.gain.setValueAtTime(.28,ct+i*.07);g.gain.exponentialRampToValueAtTime(.001,ct+i*.07+.25);o.connect(g);g.connect(ac.destination);o.start(ct+i*.07);o.stop(ct+i*.07+.3);}}}catch(e){}}
+function sfx(t){
+  if(muted)return;
+  try{
+    const ac=getAC(),ct=ac.currentTime;
+    if(t==='card'){
+      const b=ac.createBuffer(1,ac.sampleRate*.08,ac.sampleRate);const d=b.getChannelData(0);
+      for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+      const s=ac.createBufferSource();s.buffer=b;const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=3000;
+      const g=ac.createGain();g.gain.setValueAtTime(.35,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.08);
+      s.connect(f);f.connect(g);g.connect(ac.destination);s.start(ct);
+    }else if(t==='select'){
+      const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.setValueAtTime(1200,ct);o.frequency.exponentialRampToValueAtTime(800,ct+.04);g.gain.setValueAtTime(.12,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.04);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.05);
+    }else if(t==='pass'){
+      const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(220,ct);o.frequency.exponentialRampToValueAtTime(110,ct+.15);g.gain.setValueAtTime(.2,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.15);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.16);
+    }else if(t==='eight'){
+      [220,330,440].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0,ct+.05);g.gain.linearRampToValueAtTime(.18,ct+.1+i*.02);g.gain.exponentialRampToValueAtTime(.001,ct+.5);o.connect(g);g.connect(ac.destination);o.start(ct+.05);o.stop(ct+.55);});
+    }else if(t==='revolution'){
+      for(let i=0;i<4;i++){const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(400-i*60,ct+i*.07);o.frequency.exponentialRampToValueAtTime((400-i*60)*.4,ct+i*.07+.15);g.gain.setValueAtTime(.28,ct+i*.07);g.gain.exponentialRampToValueAtTime(.001,ct+i*.07+.25);o.connect(g);g.connect(ac.destination);o.start(ct+i*.07);o.stop(ct+i*.07+.3);}
+    }else if(t==='spade3'){
+      [523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,ct+i*.06);g.gain.linearRampToValueAtTime(.22,ct+i*.06+.03);g.gain.exponentialRampToValueAtTime(.001,ct+i*.06+.25);o.connect(g);g.connect(ac.destination);o.start(ct+i*.06);o.stop(ct+i*.06+.3);});
+    }else if(t==='eleven'){
+      const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(300,ct);o.frequency.exponentialRampToValueAtTime(1200,ct+.12);o.frequency.exponentialRampToValueAtTime(400,ct+.25);g.gain.setValueAtTime(.25,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.3);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.32);
+    }else if(t==='seven'){
+      [392,494,587,740].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,ct+i*.05);g.gain.linearRampToValueAtTime(.2,ct+i*.05+.02);g.gain.exponentialRampToValueAtTime(.001,ct+i*.05+.35);o.connect(g);g.connect(ac.destination);o.start(ct+i*.05);o.stop(ct+i*.05+.4);});
+    }else if(t==='five'){
+      const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(800,ct);o.frequency.exponentialRampToValueAtTime(200,ct+.18);g.gain.setValueAtTime(.2,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.2);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.22);
+    }else if(t==='ten'){
+      const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.setValueAtTime(600,ct);o.frequency.exponentialRampToValueAtTime(150,ct+.2);g.gain.setValueAtTime(.18,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.22);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.24);
+    }else if(t==='win'){
+      const mel=[523,659,784,1047,784,1047],dur=[.1,.1,.1,.2,.05,.3];let c=ct;
+      mel.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.15,c);g.gain.exponentialRampToValueAtTime(.001,c+dur[i]-.01);o.connect(g);g.connect(ac.destination);o.start(c);o.stop(c+dur[i]);c+=dur[i];});
+    }else if(t==='lose'){
+      const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(300,ct);o.frequency.exponentialRampToValueAtTime(60,ct+.6);g.gain.setValueAtTime(.25,ct);g.gain.exponentialRampToValueAtTime(.001,ct+.65);o.connect(g);g.connect(ac.destination);o.start(ct);o.stop(ct+.7);
+    }else if(t==='foul'){
+      [160,155,150].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(.3,ct+i*.12);g.gain.exponentialRampToValueAtTime(.001,ct+i*.12+.1);o.connect(g);g.connect(ac.destination);o.start(ct+i*.12);o.stop(ct+i*.12+.15);});
+    }else if(t==='deal'){
+      for(let i=0;i<6;i++){const b=ac.createBuffer(1,ac.sampleRate*.04,ac.sampleRate);const d=b.getChannelData(0);for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*Math.pow(1-j/d.length,2);const s=ac.createBufferSource();s.buffer=b;const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=2500+i*200;const g=ac.createGain();g.gain.setValueAtTime(.2,ct+i*.06);g.gain.exponentialRampToValueAtTime(.001,ct+i*.06+.04);s.connect(f);f.connect(g);g.connect(ac.destination);s.start(ct+i*.06);}
+    }
+  }catch(e){}
+}
 
-// ===== カードロジック（クライアント用） =====
+// ===== カードロジック（クライアント側） =====
 const SUITS=['♣','♦','♥','♠'],NUMS=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
 const NR={};NUMS.forEach((n,i)=>NR[n]=i+3);
 function cr(c){return c.isJoker?100:NR[c.num]}
 function isRed(c){return c.suit==='♦'||c.suit==='♥'}
 function r2n(r){return NUMS.find(n=>NR[n]===r)||null}
 function sortHand(h){return [...h].sort((a,b)=>{if(a.isJoker&&b.isJoker)return 0;if(a.isJoker)return 1;if(b.isJoker)return -1;if(cr(a)!==cr(b))return cr(a)-cr(b);return SUITS.indexOf(a.suit)-SUITS.indexOf(b.suit);});}
-function isStairsLocal(cards,jr){if(cards.length<3)return false;const n=cards.filter(c=>!c.isJoker),j=cards.filter(c=>c.isJoker);if(j.length>1||!n.length)return false;if(!n.every(c=>c.suit===n[0].suit))return false;const nums=n.map(c=>NR[c.num]).sort((a,b)=>a-b);for(let i=0;i<nums.length-1;i++)if(nums[i]===nums[i+1])return false;if(!j.length){for(let i=0;i<nums.length-1;i++)if(nums[i+1]-nums[i]!==1)return false;return true;}if(jr!==undefined){const all=[...nums,jr].sort((a,b)=>a-b);for(let i=0;i<all.length-1;i++)if(all[i+1]-all[i]!==1)return false;return true;}let gaps=0;for(let i=0;i<nums.length-1;i++){const d=nums[i+1]-nums[i];if(d===1)continue;if(d===2){gaps++;continue;}return false;}return gaps<=1;}
-function isValidPairLocal(cards){const n=cards.filter(c=>!c.isJoker);return !n.length||n.every(c=>c.num===n[0].num);}
-function getEffRanksLocal(cards,jr){return cards.map(c=>c.isJoker?(jr!==undefined?jr:null):NR[c.num]).filter(r=>r!==null);}
 
 function resolveJokerRank(selList, hand) {
-  const ordered = [...selList].sort((a,b)=>a.order-b.order);
-  const jokerPos = ordered.findIndex(s=>s.id==='JOKER'||s.id==='JOKER2');
-  if (jokerPos<0) return undefined;
-  const normals = ordered.filter(s=>s.id!=='JOKER'&&s.id!=='JOKER2').map(s=>hand.find(c=>c.id===s.id)).filter(Boolean);
-  if (!normals.length) return undefined;
-  const uniqueNums = [...new Set(normals.map(c=>c.num))];
-  if (uniqueNums.length===1) return NR[uniqueNums[0]];
-  const sortedRanks = normals.map(c=>NR[c.num]).sort((a,b)=>a-b);
+  const ordered=[...selList].sort((a,b)=>a.order-b.order);
+  const jokerPos=ordered.findIndex(s=>s.id==='JOKER'||s.id==='JOKER2');
+  if(jokerPos<0)return undefined;
+  const normals=ordered.filter(s=>s.id!=='JOKER'&&s.id!=='JOKER2').map(s=>hand.find(c=>c.id===s.id)).filter(Boolean);
+  if(!normals.length)return undefined;
+  const uniqueNums=[...new Set(normals.map(c=>c.num))];
+  if(uniqueNums.length===1)return NR[uniqueNums[0]];
+  const sortedRanks=normals.map(c=>NR[c.num]).sort((a,b)=>a-b);
   let gapRank=null,consecutive=true;
   for(let i=0;i<sortedRanks.length-1;i++){const diff=sortedRanks[i+1]-sortedRanks[i];if(diff===2){if(gapRank!==null){consecutive=false;break;}gapRank=sortedRanks[i]+1;}else if(diff!==1){consecutive=false;break;}}
   if(!consecutive&&gapRank===null)return undefined;
@@ -257,232 +291,196 @@ function resolveJokerRank(selList, hand) {
 }
 
 // ===== ロビー =====
-function getName() {
-  return document.getElementById('myname').value.trim() || '名無し';
-}
-function createRoom() {
-  socket.emit('createRoom', { name: getName() });
-  isHost = true;
-}
-function joinRoom() {
-  const code = document.getElementById('room-code-input').value.trim().toUpperCase();
-  if (code.length < 2) { showLobbyError('コードを入力してください'); return; }
-  socket.emit('joinRoom', { code, name: getName() });
-  isHost = false;
-}
-function showLobbyError(msg) {
-  const el = document.getElementById('lobby-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-  setTimeout(()=>el.style.display='none', 3000);
-}
-function copyCode() {
-  navigator.clipboard.writeText(roomCode).then(()=>{
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = '✅ コピー済み';
-    setTimeout(()=>btn.textContent='📋 コピー', 2000);
-  });
-}
-function updateWaitingRoom(players) {
-  document.getElementById('player-count').textContent = players.length;
-  document.getElementById('need-count').textContent = 4 - players.length;
-  const slots = document.getElementById('player-slots');
-  slots.innerHTML = '';
-  for (let i=0;i<4;i++) {
-    const div = document.createElement('div');
-    div.className = 'player-slot';
-    if (players[i]) {
-      div.innerHTML = `<div class="slot-num">${i+1}</div><div class="slot-name">${players[i]}${i===0?' 👑':''}</div>`;
-    } else {
-      div.innerHTML = `<div class="slot-num" style="opacity:.3">${i+1}</div><div class="slot-empty">待機中...</div>`;
-    }
+function getName(){return document.getElementById('myname').value.trim()||'名無し';}
+function createRoom(){socket.emit('createRoom',{name:getName()});isHost=true;}
+function joinRoom(){const code=document.getElementById('room-code-input').value.trim().toUpperCase();if(code.length<2){showLobbyError('コードを入力してください');return;}socket.emit('joinRoom',{code,name:getName()});isHost=false;}
+function showLobbyError(msg){const el=document.getElementById('lobby-error');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
+function copyCode(){navigator.clipboard.writeText(roomCode).then(()=>{const btn=document.querySelector('.copy-btn');btn.textContent='✅ コピー済み';setTimeout(()=>btn.textContent='📋 コピー',2000);});}
+function startWithCPU(){socket.emit('startRoom');}
+function requestNextGame(){socket.emit('nextGame');hideOv();}
+
+function updateWaitingRoom(players){
+  document.getElementById('player-count').textContent=players.length;
+  document.getElementById('need-count').textContent=4-players.length;
+  const slots=document.getElementById('player-slots');slots.innerHTML='';
+  for(let i=0;i<4;i++){
+    const div=document.createElement('div');div.className='player-slot';
+    if(players[i])div.innerHTML=`<div class="slot-num">${i+1}</div><div class="slot-name">${players[i]}${i===0?' 👑':''}</div>`;
+    else div.innerHTML=`<div class="slot-num" style="opacity:.3">${i+1}</div><div class="slot-empty">待機中...</div>`;
     slots.appendChild(div);
   }
-  const startBtn = document.getElementById('start-btn');
-  const cpuBtn = document.getElementById('start-cpu-btn');
-  if (players.length === 4) {
-    document.getElementById('waiting-msg').textContent = '4人揃いました！まもなく開始します...';
-    startBtn.disabled = !isHost;
-    cpuBtn.style.display = 'none';
-  } else {
-    startBtn.disabled = true;
-    // ホストで1人以上いればCPU補充ボタンを表示
-    cpuBtn.style.display = (isHost && players.length >= 1) ? 'block' : 'none';
+  const startBtn=document.getElementById('start-btn');
+  const cpuBtn=document.getElementById('start-cpu-btn');
+  if(players.length===4){
+    document.getElementById('waiting-msg').textContent='4人揃いました！まもなく開始します...';
+    startBtn.disabled=!isHost;startBtn.style.opacity=isHost?1:.4;cpuBtn.style.display='none';
+  }else{
+    startBtn.disabled=true;startBtn.style.opacity=.4;
+    cpuBtn.style.display=(isHost&&players.length>=1)?'block':'none';
   }
-}
-function startWithCPU() {
-  socket.emit('startRoom');
-}
-function requestNextGame() {
-  socket.emit('nextGame');
-  hideOv();
 }
 
 // ===== Socket イベント =====
-socket.on('roomCreated', ({ code, players }) => {
-  roomCode = code;
-  document.getElementById('disp-code').textContent = code;
-  document.getElementById('lobby').style.display = 'none';
-  document.getElementById('waiting').style.display = 'flex';
+socket.on('roomCreated',({code,players})=>{
+  roomCode=code;document.getElementById('disp-code').textContent=code;
+  document.getElementById('lobby').style.display='none';
+  document.getElementById('waiting').style.display='flex';
   updateWaitingRoom(players);
 });
-socket.on('playerJoined', ({ players }) => {
-  updateWaitingRoom(players);
+socket.on('playerJoined',({players})=>updateWaitingRoom(players));
+socket.on('gameStart',()=>{
+  document.getElementById('waiting').style.display='none';
+  document.getElementById('lobby').style.display='none';
+  document.getElementById('game').style.display='flex';
+  hideOv();SEL=[];selCnt=0;sfx('deal');
 });
-socket.on('gameStart', () => {
-  document.getElementById('waiting').style.display = 'none';
-  document.getElementById('lobby').style.display = 'none';
-  document.getElementById('game').style.display = 'flex';
-  hideOv();
-  SEL=[]; selCnt=0;
+socket.on('state',(state)=>{
+  const prev=G;
+  G=state;myIndex=state.myIndex;
+  renderWithEffects(prev);
 });
-socket.on('state', (state) => {
-  G = state;
-  myIndex = state.myIndex;
-  render();
-});
-socket.on('error', (msg) => {
-  showLobbyError(msg);
-  alert(msg);
-});
-socket.on('playerLeft', ({ name }) => {
-  alert(`${name} が切断しました`);
-});
+socket.on('error',(msg)=>{showLobbyError(msg);});
+socket.on('playerLeft',({name})=>{alert(`${name} が切断しました`);});
 
-// ===== 自分のターン通知 =====
-let prevTurn = -1;
-function showMyTurnBanner() {
-  const b = document.getElementById('myturn-banner');
-  b.classList.add('show');
-  setTimeout(()=>b.classList.remove('show'), 2000);
+// ===== 効果音をstateから推定して再生 =====
+function renderWithEffects(prev) {
+  if(!G)return;
+  // 場クリア（lastCardsが0になった）→ clearアニメ
+  const justCleared = prev && prev.lastCards && prev.lastCards.length>0 && G.lastCards.length===0;
+  // 新しいカードが場に出た
+  const newCardsPlayed = prev && G.lastCards.length>0 && JSON.stringify(prev.lastCards)!==JSON.stringify(G.lastCards);
+  // ログから効果音を推定
+  const newLogs = prev ? G.log.filter(l=>!prev.log.includes(l)) : [];
+  for(const l of newLogs){
+    if(l.includes('革命'))sfx('revolution');
+    if(l.includes('8切り'))sfx('eight');
+    if(l.includes('11バック'))sfx('eleven');
+    if(l.includes('スペ3返し')||l.includes('♠3返し'))sfx('spade3');
+    if(l.includes('7渡し'))sfx('seven');
+    if(l.includes('5スキップ'))sfx('five');
+    if(l.includes('10捨て'))sfx('ten');
+    if(l.includes('反則上がり'))sfx('foul');
+    if(l.includes('パス'))sfx('pass');
+    if(l.includes('🏆')){
+      const nameInLog=l.includes(G.players[myIndex]?.name);
+      if(nameInLog&&G.players[myIndex]?.rank===0)sfx('win');
+      else if(nameInLog&&G.players[myIndex]?.rank===3)sfx('lose');
+    }
+  }
+  if(newCardsPlayed) sfx('card');
+
+  if(justCleared){
+    animateClear(()=>render(false));
+  } else {
+    render(newCardsPlayed);
+  }
+  // あなたのターン通知
+  if(G.currentTurn===myIndex && G.currentTurn!==prevTurn && !G.gameOver && G.players[myIndex].rank===null){
+    showMyTurnBanner();
+  }
+  prevTurn=G.currentTurn;
+  // ゲーム終了
+  if(G.gameOver && (!prev||!prev.gameOver)) showResult();
+  // 7渡しUI
+  if(G.sevenPassActive&&G.sevenPassFrom===myIndex) show7UI();
+  // 10捨てUI
+  if(G.tenDiscardActive&&G.tenDiscardFrom===myIndex) show10UI();
+}
+
+function animateClear(callback){
+  const pld=document.getElementById('pld');
+  const cards=pld.querySelectorAll('.card');
+  if(!cards.length){callback();return;}
+  cards.forEach(el=>{el.classList.remove('play-anim');el.classList.add('clear-anim');});
+  setTimeout(callback,1750);
 }
 
 // ===== プレイ =====
-function getMyHand() {
-  if (!G) return [];
-  return G.players[myIndex]?.hand || [];
+function getMyHand(){return G?G.players[myIndex]?.hand||[]:[]}
+function isMyTurn(){return G&&G.currentTurn===myIndex&&!G.gameOver&&G.players[myIndex].rank===null;}
+
+function playSelected(){
+  if(!isMyTurn())return;
+  const hand=getMyHand();
+  const cards=SEL.map(s=>hand.find(c=>c.id===s.id)).filter(Boolean);
+  if(!cards.length)return;
+  let jokerRank=undefined;
+  if(cards.some(c=>c.isJoker))jokerRank=resolveJokerRank(SEL,hand);
+  socket.emit('playCards',{cardIds:cards.map(c=>c.id),jokerRank});
+  SEL=[];selCnt=0;
 }
-
-function isMyTurn() {
-  return G && G.currentTurn === myIndex && !G.gameOver && G.players[myIndex].rank === null;
-}
-
-function playSelected() {
-  if (!isMyTurn()) return;
-  const hand = getMyHand();
-  const cards = SEL.map(s=>hand.find(c=>c.id===s.id)).filter(Boolean);
-  if (!cards.length) return;
-
-  let jokerRank = undefined;
-  if (cards.some(c=>c.isJoker)) {
-    jokerRank = resolveJokerRank(SEL, hand);
-  }
-  socket.emit('playCards', { cardIds: cards.map(c=>c.id), jokerRank });
-  SEL=[]; selCnt=0;
-}
-
-function doPass() {
-  if (!isMyTurn()) return;
+function doPass(){
+  if(!isMyTurn())return;
   sfx('pass');
   socket.emit('pass');
 }
-
-function tgSel(id) {
-  if (!isMyTurn()) return;
+function tgSel(id){
+  if(!isMyTurn())return;
   sfx('select');
-  const i = SEL.findIndex(s=>s.id===id);
-  if (i>=0) {
-    const ro=SEL[i].order; SEL.splice(i,1);
-    SEL.forEach(s=>{if(s.order>ro)s.order--;});
-    selCnt = SEL.length>0?Math.max(...SEL.map(s=>s.order)):0;
-  } else {
-    selCnt++; SEL.push({id,order:selCnt});
-  }
+  const i=SEL.findIndex(s=>s.id===id);
+  if(i>=0){const ro=SEL[i].order;SEL.splice(i,1);SEL.forEach(s=>{if(s.order>ro)s.order--;});selCnt=SEL.length>0?Math.max(...SEL.map(s=>s.order)):0;}
+  else{selCnt++;SEL.push({id,order:selCnt});}
   renderHand();
 }
 
 // 7渡しUI
-let _7sel = [], _7max = 0;
-function show7UI() {
-  if (!G.sevenPassActive || G.sevenPassFrom !== myIndex) return;
-  _7sel=[]; _7max=G.sevenPassMax;
-  document.getElementById('xt1').textContent = `7渡し×${_7max}！`;
-  document.getElementById('xd1').textContent = `${G.players[G.sevenPassTo].name}に渡すカード（1〜${_7max}枚）`;
+function show7UI(){
+  if(!G.sevenPassActive||G.sevenPassFrom!==myIndex)return;
+  _7sel=[];_7max=G.sevenPassMax;
+  document.getElementById('xt1').textContent=`7渡し×${_7max}！`;
+  document.getElementById('xd1').textContent=`${G.players[G.sevenPassTo].name}に渡すカード（1〜${_7max}枚）`;
   render7Cards();
-  document.getElementById('xb1').onclick = confirm7;
+  document.getElementById('xb1').onclick=confirm7;
   document.getElementById('xui1').style.display='block';
   document.getElementById('ov').classList.add('show');
 }
-function render7Cards() {
-  const hand = getMyHand();
-  document.getElementById('xc1').innerHTML = sortHand(hand).map(c=>{
-    const s=_7sel.includes(c.id);
-    return `<div class="card${c.isJoker?' jok':isRed(c)?' red':''} ${s?'sel':''}" onclick="tg7('${c.id}')"><div class="cs">${c.isJoker?'★':c.suit}</div><div class="cn">${c.isJoker?'JOK':c.num}</div></div>`;
-  }).join('');
-  const b=document.getElementById('xb1');
-  b.disabled=_7sel.length<1;b.style.opacity=_7sel.length>=1?1:.4;
-  b.textContent=_7sel.length>=1?`${_7sel.length}枚渡す`:'選んでください';
+function render7Cards(){
+  const hand=getMyHand();
+  document.getElementById('xc1').innerHTML=sortHand(hand).map(c=>{const s=_7sel.includes(c.id);return `<div class="card${c.isJoker?' jok':isRed(c)?' red':''} ${s?'sel':''}" onclick="tg7('${c.id}')"><div class="cs">${c.isJoker?'★':c.suit}</div><div class="cn">${c.isJoker?'JOK':c.num}</div></div>`;}).join('');
+  const b=document.getElementById('xb1');b.disabled=_7sel.length<1;b.style.opacity=_7sel.length>=1?1:.4;b.textContent=_7sel.length>=1?`${_7sel.length}枚渡す`:'選んでください';
 }
 function tg7(id){const i=_7sel.indexOf(id);i>=0?_7sel.splice(i,1):_7sel.length<_7max&&_7sel.push(id);render7Cards();}
 function confirm7(){if(_7sel.length<1)return;socket.emit('sevenPass',{cardIds:_7sel});_7sel=[];hideOv();}
 
 // 10捨てUI
-let _10sel=[], _10max=0;
-function show10UI() {
-  if (!G.tenDiscardActive || G.tenDiscardFrom !== myIndex) return;
-  _10sel=[]; _10max=G.tenDiscardMax;
-  document.getElementById('xd2').textContent = `捨てるカード（1〜${_10max}枚）`;
+function show10UI(){
+  if(!G.tenDiscardActive||G.tenDiscardFrom!==myIndex)return;
+  _10sel=[];_10max=G.tenDiscardMax;
+  document.getElementById('xd2').textContent=`捨てるカード（1〜${_10max}枚）`;
   render10Cards();
   document.getElementById('xui2').style.display='block';
   document.getElementById('ov').classList.add('show');
 }
-function render10Cards() {
-  const hand = getMyHand();
-  document.getElementById('xc2').innerHTML = sortHand(hand).map(c=>{
-    const s=_10sel.includes(c.id);
-    return `<div class="card${c.isJoker?' jok':isRed(c)?' red':''} ${s?'sel':''}" onclick="tgDis('${c.id}')"><div class="cs">${c.isJoker?'★':c.suit}</div><div class="cn">${c.isJoker?'JOK':c.num}</div></div>`;
-  }).join('')||'<span style="color:#aaa">手札なし</span>';
-  const b=document.getElementById('xb2');
-  b.disabled=_10sel.length<1;b.style.opacity=_10sel.length>=1?1:.4;
-  b.textContent=_10sel.length>=1?`${_10sel.length}枚捨てる`:'選んでください';
+function render10Cards(){
+  const hand=getMyHand();
+  document.getElementById('xc2').innerHTML=sortHand(hand).map(c=>{const s=_10sel.includes(c.id);return `<div class="card${c.isJoker?' jok':isRed(c)?' red':''} ${s?'sel':''}" onclick="tgDis('${c.id}')"><div class="cs">${c.isJoker?'★':c.suit}</div><div class="cn">${c.isJoker?'JOK':c.num}</div></div>`;}).join('')||'<span style="color:#aaa">手札なし</span>';
+  const b=document.getElementById('xb2');b.disabled=_10sel.length<1;b.style.opacity=_10sel.length>=1?1:.4;b.textContent=_10sel.length>=1?`${_10sel.length}枚捨てる`:'選んでください';
 }
 function tgDis(id){const i=_10sel.indexOf(id);i>=0?_10sel.splice(i,1):_10sel.length<_10max&&_10sel.push(id);render10Cards();}
 function confirmDiscard(){if(_10sel.length<1)return;socket.emit('tenDiscard',{cardIds:_10sel});_10sel=[];hideOv();}
 
 // ===== レンダリング =====
-// 4人の座席配置：自分=下、反時計回りに左・上・右
-function getSeatOrder() {
-  // myIndex=0 → [0=self,1=left,2=top,3=right]
-  return [
-    myIndex,
-    (myIndex+1)%4,
-    (myIndex+2)%4,
-    (myIndex+3)%4,
-  ];
-}
+function getSeatOrder(){return[myIndex,(myIndex+1)%4,(myIndex+2)%4,(myIndex+3)%4];}
 
-const SEAT_IDS = ['self','left','top','right'];
-// self→#btm配下、left→p-left、top→p-top、right→p-right
-
-function renderOpponent(pidx, suffix) {
-  if (!G) return;
-  const p = G.players[pidx];
-  const isActive = G.currentTurn === pidx && !G.gameOver && p.rank === null;
-  const cp = document.getElementById(`p-${suffix}`);
-  if (!cp) return;
-  cp.className = 'cp' + (isActive?' active':'') + (p.passed?' passed':'') + (p.rank!==null?' done':'');
-  document.getElementById(`n-${suffix}`).textContent = p.name + (pidx===myIndex?' (あなた)':'');
+function renderOpponent(pidx,suffix){
+  if(!G)return;
+  const p=G.players[pidx];
+  const isActive=G.currentTurn===pidx&&!G.gameOver&&p.rank===null;
+  const cp=document.getElementById(`p-${suffix}`);if(!cp)return;
+  cp.className='cp'+(isActive?' active':'')+(p.passed?' passed':'')+(p.rank!==null?' done':'');
+  document.getElementById(`n-${suffix}`).textContent=p.name+(pidx===myIndex?' (あなた)':'');
   const RN=['大富豪','富豪','貧民','大貧民'],RC=['bd0','bd1','bd2','bd3'];
-  const rel = document.getElementById(`r-${suffix}`);
-  if (p.rank!==null){const r=Math.min(p.rank,3);rel.innerHTML=`<span class="bdg ${RC[r]}">${RN[r]}</span>`;}
+  const rel=document.getElementById(`r-${suffix}`);
+  if(p.rank!==null){const r=Math.min(p.rank,3);rel.innerHTML=`<span class="bdg ${RC[r]}">${RN[r]}</span>`;}
   else if(p.passed)rel.innerHTML='<span style="color:#888;font-size:10px">パス</span>';
   else rel.textContent='';
-  document.getElementById(`c-${suffix}`).textContent = p.handCount ?? (p.hand?.length||0);
-  let b='';for(let i=0;i<Math.min(p.handCount??(p.hand?.length||0),10);i++)b+='<div class="bk"></div>';
-  document.getElementById(`b-${suffix}`).innerHTML = b;
+  const cnt=p.handCount!==undefined?p.handCount:(p.hand?.length||0);
+  document.getElementById(`c-${suffix}`).textContent=cnt;
+  let b='';for(let i=0;i<Math.min(cnt,10);i++)b+='<div class="bk"></div>';
+  document.getElementById(`b-${suffix}`).innerHTML=b;
 }
 
-function mkCard(c, clickable, selIdx, ocl, jokerRoleNum) {
+function mkCard(c,clickable,selIdx,ocl,jokerRoleNum){
   const cls='card'+(c.isJoker?' jok':isRed(c)?' red':'')+(selIdx>=0?' sel':'')+(clickable?'':' nc');
   const badge=selIdx>=0?`<span class="sel-num">${selIdx+1}</span>`:'';
   const role=(c.isJoker&&jokerRoleNum!=null)?`<span class="jok-role">${jokerRoleNum}</span>`:'';
@@ -490,118 +488,89 @@ function mkCard(c, clickable, selIdx, ocl, jokerRoleNum) {
 }
 function mkPrevCard(c){const cls='prev-card'+(c.isJoker?' jok':isRed(c)?' red':'');return `<div class="${cls}"><div>${c.isJoker?'★':c.suit}</div><div>${c.isJoker?'JOK':c.num}</div></div>`;}
 
-function renderHand() {
-  if (!G) return;
-  const hand = getMyHand();
-  let jokerRoleNum = null;
-  if (SEL.length>=2 && SEL.some(s=>s.id==='JOKER'||s.id==='JOKER2')) {
-    const jr = resolveJokerRank(SEL, hand);
-    if (jr!==undefined) jokerRoleNum = r2n(jr);
-  }
-  document.getElementById('hnd').innerHTML = sortHand(hand).map(c=>{
+function renderHand(){
+  if(!G)return;
+  const hand=getMyHand();
+  let jokerRoleNum=null;
+  if(SEL.length>=2&&SEL.some(s=>s.id==='JOKER'||s.id==='JOKER2')){const jr=resolveJokerRank(SEL,hand);if(jr!==undefined)jokerRoleNum=r2n(jr);}
+  document.getElementById('hnd').innerHTML=sortHand(hand).map(c=>{
     const si=SEL.findIndex(s=>s.id===c.id);
     const selIdx=si>=0?SEL[si].order-1:-1;
     const roleNum=c.isJoker&&si>=0?jokerRoleNum:null;
-    return mkCard(c, isMyTurn(), selIdx, `tgSel('${c.id}')`, roleNum);
-  }).join('') || '<span style="color:#555;font-size:12px">手札なし</span>';
+    return mkCard(c,isMyTurn(),selIdx,`tgSel('${c.id}')`,roleNum);
+  }).join('')||'<span style="color:#555;font-size:12px">手札なし</span>';
   const p=G.players[myIndex];
-  document.getElementById('hlbl').textContent = `あなたの手札 (${hand.length}枚)${p.rank!==null?' - 上がり済み':''}`;
+  document.getElementById('hlbl').textContent=`あなたの手札 (${hand.length}枚)${p.rank!==null?' ✅':''}`;
 }
 
-function render() {
-  if (!G) return;
-  const seats = getSeatOrder();
-  // top=seats[2], left=seats[1], right=seats[3]
+function render(animateNewCards){
+  if(!G)return;
+  const seats=getSeatOrder();
   renderOpponent(seats[1],'left');
   renderOpponent(seats[2],'top');
   renderOpponent(seats[3],'right');
-
-  // ラウンド・革命表示
-  document.getElementById('rnum').textContent = G.round||1;
+  document.getElementById('rnum').textContent=G.round||1;
   let rt='';
   if(G.revolution&&G.elevenBack)rt='🔄革命/🔁11バック（相殺）';
   else if(G.revolution)rt='🔄革命中';
   else if(G.elevenBack)rt='🔁11バック中';
   document.getElementById('revi').textContent=rt;
-
   // 場のカード
   const pld=document.getElementById('pld');
   if(G.lastCards.length){
     pld.innerHTML=G.lastCards.map(c=>mkCard(c,false,-1,null,null)).join('');
-  } else {
+    if(animateNewCards){
+      requestAnimationFrame(()=>{
+        pld.querySelectorAll('.card').forEach(el=>{el.classList.remove('play-anim');void el.offsetWidth;el.classList.add('play-anim');});
+      });
+    }
+  }else{
     pld.innerHTML='<span style="color:#555;font-size:12px">── 場にカードなし ──</span>';
   }
-
   // 前の手
   const pa=document.getElementById('prev-area');
   if(G.prevPlay&&G.prevPlay.cards.length>0&&G.lastCards.length>0){
     document.getElementById('prev-cards').innerHTML=G.prevPlay.cards.map(c=>mkPrevCard(c)).join('');
     document.getElementById('prev-who').textContent=G.prevPlay.playerName?`(${G.prevPlay.playerName})`:'';
     pa.style.display='flex';
-  } else {pa.style.display='none';}
-
-  // ターン表示
-  const myTurn = isMyTurn();
-  const cp=document.getElementById('p-left');// dummy ref
-  const curName=G.players[G.currentTurn].name;
-  if(G.gameOver) document.getElementById('tlbl').textContent='ゲーム終了！';
-  else if(myTurn) document.getElementById('tlbl').textContent='🟢 あなたのターン！';
-  else document.getElementById('tlbl').textContent=`${curName}のターン`;
-
-  // 縛り表示
-  const shibariParts=[];
-  if(G.shibariSuits&&G.shibariSuits.length>0)shibariParts.push(`🔒 ${G.shibariSuits.join('')}縛り`);
-  if(G.kazuShibariNum!==null&&G.kazuShibariNum!==undefined){const rn=r2n(G.kazuShibariNum);shibariParts.push(`🔢 数字縛り(${rn||'?'})`);}
-  document.getElementById('slbl').textContent=shibariParts.join(' ');
-
+  }else{pa.style.display='none';}
+  // ターン
+  const myTurn=isMyTurn();
+  if(G.gameOver)document.getElementById('tlbl').textContent='ゲーム終了！';
+  else if(myTurn)document.getElementById('tlbl').textContent='🟢 あなたのターン！';
+  else document.getElementById('tlbl').textContent=`${G.players[G.currentTurn].name}のターン`;
+  // 縛り
+  const sp=[];
+  if(G.shibariSuits&&G.shibariSuits.length>0)sp.push(`🔒 ${G.shibariSuits.join('')}縛り`);
+  if(G.kazuShibariNum!==null&&G.kazuShibariNum!==undefined){const rn=r2n(G.kazuShibariNum);sp.push(`🔢 数字縛り(${rn||'?'})`);}
+  document.getElementById('slbl').textContent=sp.join(' ');
   // ボタン
-  document.getElementById('bpl').disabled = !myTurn;
-  document.getElementById('bps').disabled = !myTurn || !G.lastCards.length;
-
-  // 手札
+  document.getElementById('bpl').disabled=!myTurn;
+  document.getElementById('bps').disabled=!myTurn||!G.lastCards.length;
   renderHand();
-
-  // ログ
   document.getElementById('log').innerHTML=G.log.map(l=>`<div>${l}</div>`).join('');
-
-  // あなたのターン通知
-  if (myTurn && G.currentTurn !== prevTurn) {
-    showMyTurnBanner();
-    sfx('card');
-  }
-  prevTurn = G.currentTurn;
-
-  // 7渡しUI
-  if (G.sevenPassActive && G.sevenPassFrom === myIndex) {
-    show7UI();
-  }
-  // 10捨てUI
-  if (G.tenDiscardActive && G.tenDiscardFrom === myIndex) {
-    show10UI();
-  }
-
-  // ゲーム終了
-  if (G.gameOver) {
-    showResult();
-  }
 }
 
-function showResult() {
+function showMyTurnBanner(){
+  const b=document.getElementById('myturn-banner');b.classList.add('show');setTimeout(()=>b.classList.remove('show'),2000);
+}
+
+function showResult(){
   const RN=['大富豪','富豪','貧民','大貧民'],RC=['bd0','bd1','bd2','bd3'];
-  const myRank = G.players[myIndex].rank;
-  document.getElementById('mt').textContent = myRank===0?'🏆 大富豪！':myRank===3?'😢 大貧民...':'ゲーム終了';
-  document.getElementById('mb').innerHTML = G.rankOrder.map(pi=>{
+  const myRank=G.players[myIndex].rank;
+  document.getElementById('mt').textContent=myRank===0?'🏆 大富豪！':myRank===3?'😢 大貧民...':'ゲーム終了';
+  document.getElementById('mb').innerHTML=G.rankOrder.map(pi=>{
     const r=Math.min(G.players[pi].rank,3);
     return `<div style="${pi===myIndex?'color:#ffd700;font-weight:700':''}"><span class="bdg ${RC[r]}">${RN[r]}</span> ${G.players[pi].name}</div>`;
   }).join('');
-  if (myRank===0) sfx('win'); else if (myRank===3) sfx('lose');
-  document.getElementById('next-btn').disabled = !isHost;
-  document.getElementById('next-btn').textContent = isHost ? '次のゲーム' : 'ホストが次のゲームを開始します...';
+  if(myRank===0)sfx('win');else if(myRank===3)sfx('lose');
+  document.getElementById('next-btn').disabled=!isHost;
+  document.getElementById('next-btn').textContent=isHost?'次のゲーム':'ホストが次のゲームを開始します...';
   document.getElementById('mdl').style.display='block';
   document.getElementById('ov').classList.add('show');
 }
 
-function hideOv() {
+function hideOv(){
   document.getElementById('ov').classList.remove('show');
   document.getElementById('mdl').style.display='none';
   document.getElementById('xui1').style.display='none';
