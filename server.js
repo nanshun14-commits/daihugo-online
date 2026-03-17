@@ -320,6 +320,7 @@ function doPassLogic(room, pidx) {
     G.currentTurn = nextAlive(G, pidx);
   }
   broadcastState(room);
+  scheduleCpuIfNeeded(room);
 }
 
 function resetField(G, turnPidx) {
