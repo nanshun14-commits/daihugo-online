@@ -144,6 +144,7 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
   </div>
   <div class="waiting-msg" id="waiting-msg">あと<span id="need-count">3</span>人待っています...</div>
   <button class="lobby-btn btn-start" id="start-btn" disabled onclick="requestNextGame()">▶ ゲーム開始（ホストのみ）</button>
+  <button class="lobby-btn" id="start-cpu-btn" style="background:#8e44ad;color:#fff;display:none" onclick="startWithCPU()">🤖 今すぐ開始（空席をCPUで補充）</button>
 </div>
 
 <!-- ゲーム -->
@@ -298,12 +299,19 @@ function updateWaitingRoom(players) {
     slots.appendChild(div);
   }
   const startBtn = document.getElementById('start-btn');
+  const cpuBtn = document.getElementById('start-cpu-btn');
   if (players.length === 4) {
     document.getElementById('waiting-msg').textContent = '4人揃いました！まもなく開始します...';
     startBtn.disabled = !isHost;
+    cpuBtn.style.display = 'none';
   } else {
     startBtn.disabled = true;
+    // ホストで1人以上いればCPU補充ボタンを表示
+    cpuBtn.style.display = (isHost && players.length >= 1) ? 'block' : 'none';
   }
+}
+function startWithCPU() {
+  socket.emit('startRoom');
 }
 function requestNextGame() {
   socket.emit('nextGame');
