@@ -338,6 +338,7 @@ function applyEffects(room, pidx, has8, has5, hasJ, effects) {
     effects.push('🎴 8切り！');
     resetField(G, pidx);
     broadcastState(room);
+    scheduleCpuIfNeeded(room);
     return;
   }
   if (hasJ) {
@@ -352,10 +353,12 @@ function applyEffects(room, pidx, has8, has5, hasJ, effects) {
       n=(n+1)%4;
     }
     doPassLogic(room, pidx);
+    scheduleCpuIfNeeded(room);
     return;
   }
   G.currentTurn = nextAlive(G, pidx);
   broadcastState(room);
+  scheduleCpuIfNeeded(room);
 }
 
 // ===== Socket.io =====
@@ -569,6 +572,22 @@ io.on('connection', (socket) => {
     }
   });
 
+  // 人数が足りない状態でホストが強制開始（CPU補充）
+  socket.on('startRoom', () => {
+    const room = rooms[socket.data.roomCode];
+    if (!room || room.G) return;
+    if (socket.data.playerIndex !== 0) return; // ホストのみ
+    // CPU補充
+    const cpuNames = ['CPU1','CPU2','CPU3'];
+    let cpuIdx = 0;
+    while (room.players.length < 4) {
+      room.players.push({ id: `cpu-${room.code}-${cpuIdx}`, name: cpuNames[cpuIdx], isCPU: true });
+      cpuIdx++;
+    }
+    io.to(room.code).emit('playerJoined', { players: room.players.map(p=>p.name) });
+    setTimeout(() => startGame(room), 400);
+  });
+
   // 次のゲーム開始
   socket.on('nextGame', () => {
     const room = rooms[socket.data.roomCode];
@@ -604,17 +623,180 @@ function finishAll(G) {
 }
 
 function startGame(room) {
-  // rankOrderからprevRanks生成（前ラウンドの順位）
   const prevRankOrder = room.G?.rankOrder?.length===4 ? room.G.rankOrder : null;
   initGame(room);
   if (prevRankOrder) {
-    // rankOrder = [1位pidx, 2位pidx, 3位pidx, 4位pidx]
     doExchange(room.G, prevRankOrder);
     addLog(room.G, 'カード交換完了！');
   }
   addLog(room.G, `第${room.G.round}ラウンド開始！♦3を持つ人から`);
   broadcastState(room);
   io.to(room.code).emit('gameStart');
+  // CPUのターンなら自動プレイ開始
+  scheduleCpuIfNeeded(room);
+}
+
+// ===== CPU AI =====
+function scheduleCpuIfNeeded(room) {
+  if (!room.G || room.G.gameOver) return;
+  const G = room.G;
+  const cur = G.currentTurn;
+  if (room.players[cur]?.isCPU) {
+    setTimeout(() => cpuTakeTurn(room), 800);
+  }
+}
+
+function cpuTakeTurn(room) {
+  const G = room.G;
+  if (!G || G.gameOver) return;
+
+  // 7渡し待ち
+  if (G.sevenPassActive) {
+    const from = G.sevenPassFrom;
+    if (!room.players[from]?.isCPU) return;
+    const give = sortHand(G.players[from].hand).slice(0, Math.min(G.sevenPassMax, G.players[from].hand.length));
+    give.forEach(c=>{const i=G.players[from].hand.findIndex(h=>h.id===c.id);if(i>=0)G.players[from].hand.splice(i,1);});
+    G.players[G.sevenPassTo].hand = sortHand([...G.players[G.sevenPassTo].hand,...give]);
+    G.players[from].hand = sortHand(G.players[from].hand);
+    addLog(G, `7渡し:${G.players[from].name}→${G.players[G.sevenPassTo].name}に${give.length}枚`);
+    G.sevenPassActive = false;
+    if (G.players[from].hand.length===0 && G.players[from].rank===null) {
+      const ri=G.rankOrder.filter(i=>G.players[i].rank!==99).length;
+      G.players[from].rank=ri; G.rankOrder.push(from);
+      addLog(G,`🏆${G.players[from].name}:${['大富豪','富豪','貧民','大貧民'][Math.min(ri,3)]}！`);
+      if(G.rankOrder.length>=3){finishAll(G);}
+    }
+    const pe = G.pendingEffects; G.pendingEffects=null;
+    if (pe) { applyEffects(room, pe.pidx, pe.has8, pe.has5, pe.hasJ, []); }
+    else {
+      let t=G.sevenPassNextTurn;
+      for(let i=0;i<4;i++){if(G.players[t].rank===null)break;t=(t+1)%4;}
+      G.currentTurn=t; broadcastState(room);
+    }
+    scheduleCpuIfNeeded(room);
+    return;
+  }
+
+  // 10捨て待ち
+  if (G.tenDiscardActive) {
+    const from = G.tenDiscardFrom;
+    if (!room.players[from]?.isCPU) return;
+    const dis = sortHand(G.players[from].hand).slice(0, Math.min(G.tenDiscardMax, G.players[from].hand.length));
+    dis.forEach(c=>{const i=G.players[from].hand.findIndex(h=>h.id===c.id);if(i>=0)G.players[from].hand.splice(i,1);});
+    addLog(G, `10捨て:${G.players[from].name}が${dis.length}枚捨てた`);
+    G.tenDiscardActive = false;
+    if (G.players[from].hand.length===0 && G.players[from].rank===null) {
+      const ri=G.rankOrder.filter(i=>G.players[i].rank!==99).length;
+      G.players[from].rank=ri; G.rankOrder.push(from);
+      addLog(G,`🏆${G.players[from].name}:${['大富豪','富豪','貧民','大貧民'][Math.min(ri,3)]}！`);
+      if(G.rankOrder.length>=3){finishAll(G);}
+    }
+    const pe = G.pendingEffects; G.pendingEffects=null;
+    if (pe) { applyEffects(room, pe.pidx, pe.has8, pe.has5, pe.hasJ, []); }
+    else {
+      let t=G.tenDiscardNextTurn;
+      for(let i=0;i<4;i++){if(G.players[t].rank===null)break;t=(t+1)%4;}
+      G.currentTurn=t; broadcastState(room);
+    }
+    scheduleCpuIfNeeded(room);
+    return;
+  }
+
+  const pidx = G.currentTurn;
+  if (!room.players[pidx]?.isCPU) return;
+  if (G.players[pidx].rank !== null) return;
+
+  const play = cpuChoose(G, pidx);
+  if (play) {
+    // 手札から取る
+    play.cards.forEach(c=>{const i=G.players[pidx].hand.findIndex(h=>h.id===c.id);if(i>=0)G.players[pidx].hand.splice(i,1);});
+    const effects=[];
+    const isSP3 = play.cards.length===1 && play.cards[0].suit==='♠' && play.cards[0].num==='3' && G.lastCards.length===1 && G.lastCards[0].isJoker;
+    if (!isSP3 && isRevolution(play.cards)) { G.revolution=!G.revolution; effects.push(G.revolution?'🔄 革命！':'🔄 革命返し！'); }
+    if (!isSP3 && G.lastCards.length && !play.cards.some(c=>c.isJoker)) {
+      const ns=calcShibari(G.lastCards,play.cards);
+      if(ns.length>0){G.shibariSuits=ns;effects.push(`🔒 ${ns.join('')}縛り！`);}
+    }
+    if (!isSP3 && !play.cards.some(c=>c.isJoker)) {
+      const rn=effRev(G),wJ=play.cards.some(c=>c.num==='J'),rA=wJ?!rn:rn;
+      const kz=calcKazuShibari(G.lastCards,play.cards,G.kazuShibariNum,play.jokerRank,rn,rA);
+      if(kz!==null&&kz!==G.kazuShibariNum){G.kazuShibariNum=kz;effects.push('🔢 数字縛り！');}
+    }
+    const cardStr=play.cards.map(c=>{if(c.isJoker&&play.jokerRank!==undefined){const n=r2n(play.jokerRank);return `★(${n||'?'})`;}return c.isJoker?'★JOK':c.num+c.suit;}).join(',');
+    addLog(G,`${G.players[pidx].name}: ${cardStr}`);
+    if(effects.length)addLog(G,effects.join(' '));
+
+    if(isSP3){addLog(G,'♠3返し！');checkFinished(room,pidx,play.cards,undefined);if(G.gameOver){broadcastState(room);return;}resetField(G,pidx);broadcastState(room);scheduleCpuIfNeeded(room);return;}
+
+    if(G.lastCards.length>0){G.prevPlay={cards:[...G.lastCards],playerName:G.lastPlayer>=0?G.players[G.lastPlayer].name:''};}
+    G.players.forEach(pl=>pl.passed=false);
+    G.lastCards=[...play.cards];G.lastPlayer=pidx;
+
+    const effRanks=getEffRanks(play.cards,play.jokerRank);
+    const has8=effRanks.includes(NR['8']),has7=effRanks.filter(r=>r===NR['7']).length,has10=effRanks.filter(r=>r===NR['10']).length,has5=effRanks.filter(r=>r===NR['5']).length,hasJ=effRanks.includes(NR['J']);
+
+    checkFinished(room,pidx,play.cards,play.jokerRank);
+    if(G.gameOver){broadcastState(room);return;}
+
+    if(has7>0){addLog(G,`7渡し×${has7}！`);G.sevenPassActive=true;G.sevenPassMax=has7;G.sevenPassFrom=pidx;G.sevenPassTo=nextAlive(G,pidx);G.sevenPassNextTurn=nextAlive(G,pidx);G.pendingEffects={pidx,has8,has5,hasJ};broadcastState(room);setTimeout(()=>cpuTakeTurn(room),600);return;}
+    if(has10>0){addLog(G,`10捨て×${has10}！`);G.tenDiscardActive=true;G.tenDiscardMax=has10;G.tenDiscardFrom=pidx;G.tenDiscardNextTurn=nextAlive(G,pidx);G.pendingEffects={pidx,has8,has5,hasJ};broadcastState(room);setTimeout(()=>cpuTakeTurn(room),600);return;}
+
+    applyEffects(room,pidx,has8,has5,hasJ,effects);
+  } else {
+    // パス
+    G.players[pidx].passed=true;
+    addLog(G,`${G.players[pidx].name}:パス`);
+    doPassLogic(room,pidx);
+  }
+  scheduleCpuIfNeeded(room);
+}
+
+function cpuChoose(G, pidx) {
+  const hand=G.players[pidx].hand,{lastCards}=G,rev=effRev(G);
+  const normals=sortHand(hand.filter(c=>!c.isJoker)),jokers=hand.filter(c=>c.isJoker);
+  const fm=fMode(lastCards);
+  const cands=[];
+  function tryAdd(cards,jr){if(canPlay(cards,G,jr))cands.push({cards,jokerRank:jr});}
+
+  if(!lastCards.length){
+    if(normals.length)tryAdd([normals[0]],undefined);
+    for(let i=0;i<normals.length-1;i++)if(normals[i].num===normals[i+1].num){tryAdd([normals[i],normals[i+1]],undefined);break;}
+    const st=cpuFindStairs(normals,jokers);if(st)tryAdd(st.cards,st.jr);
+  } else {
+    const n=lastCards.length;
+    if(fm==='single'){for(const c of normals)tryAdd([c],undefined);if(jokers.length)tryAdd([jokers[0]],undefined);}
+    else if(fm==='multi'){
+      const g={};for(const c of normals){if(!g[c.num])g[c.num]=[];g[c.num].push(c);}
+      for(const v of Object.values(g)){
+        if(v.length>=n)tryAdd(v.slice(0,n),undefined);
+        if(v.length>=n-1&&jokers.length){tryAdd([...v.slice(0,n-1),jokers[0]],NR[v[0].num]);}
+      }
+    } else if(fm==='stairs'){
+      const sts=cpuFindAllStairs(normals,jokers,n);for(const s of sts)tryAdd(s.cards,s.jr);
+    }
+  }
+  if(!cands.length)return null;
+  cands.sort((a,b)=>{
+    const ra=fm==='stairs'?stairsTop(a.cards,rev,a.jokerRank):mainRank(a.cards,rev);
+    const rb=fm==='stairs'?stairsTop(b.cards,rev,b.jokerRank):mainRank(b.cards,rev);
+    return ra-rb;
+  });
+  return cands[0];
+}
+function cpuFindStairs(normals,jokers){
+  for(const suit of SUITS){
+    const sc=sortHand(normals.filter(c=>c.suit===suit));
+    if(sc.length>=3)for(let i=0;i<=sc.length-3;i++){const seg=sc.slice(i,i+3);if(isStairsCards(seg,undefined))return{cards:seg,jr:undefined};}
+    if(jokers.length&&sc.length>=2){for(let i=0;i<=sc.length-2;i++){const seg=sc.slice(i,i+2);const nums=seg.map(c=>NR[c.num]).sort((a,b)=>a-b);const jr=nums[nums.length-1]+1;if(isStairsCards([...seg,jokers[0]],jr))return{cards:[...seg,jokers[0]],jr};}}
+  }return null;
+}
+function cpuFindAllStairs(normals,jokers,len){
+  const res=[];
+  for(const suit of SUITS){
+    const sc=sortHand(normals.filter(c=>c.suit===suit));
+    for(let i=0;i<=sc.length-len;i++){const seg=sc.slice(i,i+len);if(isStairsCards(seg,undefined))res.push({cards:seg,jr:undefined});}
+    if(jokers.length&&sc.length>=len-1){for(let i=0;i<=sc.length-(len-1);i++){const seg=sc.slice(i,i+len-1);const nums=seg.map(c=>NR[c.num]).sort((a,b)=>a-b);const jr=nums[nums.length-1]+1;if(isStairsCards([...seg,jokers[0]],jr))res.push({cards:[...seg,jokers[0]],jr});}}
+  }return res;
 }
 
 const PORT = process.env.PORT || 3000;
