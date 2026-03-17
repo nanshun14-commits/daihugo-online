@@ -209,9 +209,6 @@ function makeDeck(){let d=[];for(let s of SUITS)for(let n of NUMS)d.push({suit:s
 function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function sortHand(h){return [...h].sort((a,b)=>{if(a.isJoker&&b.isJoker)return 0;if(a.isJoker)return 1;if(b.isJoker)return -1;if(cr(a)!==cr(b))return cr(a)-cr(b);return siS(a.suit)-siS(b.suit);});}
 
-let G={},SEL=[],selCnt=0,EXSEL=[],DISSEL=[];
-let _exGotCards=[];
-
 // ===== Socket.IO =====
 const socket = io();
 let mySeat = -1;
