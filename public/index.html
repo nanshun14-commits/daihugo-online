@@ -5,37 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-
-/* ロビー */
-#lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;width:100%;max-width:400px}
-#lobby h1{font-size:36px;font-weight:700;color:#ffd700;letter-spacing:3px;margin-bottom:8px}
-#lobby input{width:100%;padding:12px 16px;border-radius:10px;border:2px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;font-size:16px;outline:none}
-#lobby input:focus{border-color:#ffd700}
-#lobby input::placeholder{color:#888}
-.lobby-btn{width:100%;padding:14px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s}
-#btn-create{background:#ffd700;color:#1a1a1a}
-#btn-create:hover{background:#ffe84a;transform:translateY(-2px)}
-#btn-join{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.4)}
-#btn-join:hover{background:rgba(255,255,255,.25)}
-#room-id-input-wrap{display:none;flex-direction:column;gap:8px;width:100%}
-.or-divider{color:#888;font-size:13px;text-align:center}
-#lobby-status{font-size:13px;color:#90EE90;text-align:center;min-height:20px}
-
-/* 待機室 */
-#waiting{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:500px;padding:32px 0}
-#waiting h2{font-size:22px;font-weight:700;color:#ffd700}
-#room-code-display{background:rgba(0,0,0,.4);border:2px solid #ffd700;border-radius:12px;padding:16px 32px;text-align:center}
-#room-code-display .label{font-size:12px;color:#aaa;margin-bottom:4px}
-#room-code-display .code{font-size:36px;font-weight:700;color:#ffd700;letter-spacing:6px}
-#copy-btn{background:rgba(255,215,0,.2);color:#ffd700;border:1px solid #ffd700;padding:6px 16px;border-radius:8px;cursor:pointer;font-size:12px}
-#seat-list{width:100%;display:flex;flex-direction:column;gap:8px}
-.seat-item{background:rgba(0,0,0,.3);border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:10px}
-.seat-num{font-size:12px;color:#888;width:40px}
-.seat-name{font-weight:600}
-.seat-empty{color:#555;font-style:italic}
-#btn-start{background:#27ae60;color:#fff;padding:14px 40px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;display:none}
-#btn-start:hover{background:#2ecc71}
-#waiting-status{font-size:13px;color:#90EE90;text-align:center}
 body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color:#fff;user-select:none;font-size:14px}
 #app{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:8px}
 #hdr{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:920px;padding:4px 0 6px}
@@ -107,34 +76,6 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 </style>
 </head>
 <body>
-
-<!-- ロビー -->
-<div id="lobby">
-  <h1>🃏 大富豪</h1>
-  <input id="name-input" placeholder="あなたの名前を入力" maxlength="12">
-  <button class="lobby-btn" id="btn-create" onclick="createRoom()">ルームを作る</button>
-  <div class="or-divider">── または ──</div>
-  <div id="room-id-input-wrap">
-    <input id="room-id-input" placeholder="ルームID（例：ABC123）" maxlength="6" style="text-transform:uppercase">
-    <button class="lobby-btn" id="btn-join-confirm" onclick="joinRoom()">参加する</button>
-  </div>
-  <button class="lobby-btn" id="btn-join" onclick="showJoinInput()">ルームに参加する</button>
-  <div id="lobby-status"></div>
-</div>
-
-<!-- 待機室 -->
-<div id="waiting">
-  <h2>待機中...</h2>
-  <div id="room-code-display">
-    <div class="label">ルームID（友達に教えてね）</div>
-    <div class="code" id="room-code-text">------</div>
-    <button id="copy-btn" onclick="copyRoomId()">コピー</button>
-  </div>
-  <div id="seat-list"></div>
-  <button id="btn-start" onclick="startGame()">ゲーム開始！</button>
-  <div id="waiting-status">友達の参加を待っています... (最大4人 / 2人から開始可能)</div>
-</div>
-  
 <div id="app">
   <div id="hdr"><h1>🃏 大富豪</h1>
     <div id="sbar">ラウンド <span id="rnum">1</span> <span id="revi"></span>
@@ -209,85 +150,9 @@ function makeDeck(){let d=[];for(let s of SUITS)for(let n of NUMS)d.push({suit:s
 function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function sortHand(h){return [...h].sort((a,b)=>{if(a.isJoker&&b.isJoker)return 0;if(a.isJoker)return 1;if(b.isJoker)return -1;if(cr(a)!==cr(b))return cr(a)-cr(b);return siS(a.suit)-siS(b.suit);});}
 
-// ===== Socket.IO =====
-const socket = io();
-let mySeat = -1;
-let myName = '';
-let myRoomId = '';
-let gameState = null;
-let SEL = [], EXSEL = [], DISSEL = [];
+let G={},SEL=[],selCnt=0,EXSEL=[],DISSEL=[];
+let _exGotCards=[];
 
-// ===== ロビー =====
-function createRoom() {
-  const name = document.getElementById('name-input').value.trim();
-  if (!name) { setLobbyStatus('名前を入力してください'); return; }
-  myName = name;
-  socket.emit('createRoom', { name }, (res) => {
-    if (!res.ok) { setLobbyStatus(res.msg || 'エラー'); return; }
-    myRoomId = res.roomId;
-    mySeat = 0;
-    showWaiting(res.roomId);
-  });
-}
-function showJoinInput() {
-  document.getElementById('room-id-input-wrap').style.display = 'flex';
-  document.getElementById('btn-join').style.display = 'none';
-}
-function joinRoom() {
-  const name = document.getElementById('name-input').value.trim();
-  const roomId = document.getElementById('room-id-input').value.trim().toUpperCase();
-  if (!name) { setLobbyStatus('名前を入力してください'); return; }
-  if (!roomId) { setLobbyStatus('ルームIDを入力してください'); return; }
-  myName = name; myRoomId = roomId;
-  socket.emit('joinRoom', { roomId, name }, (res) => {
-    if (!res.ok) { setLobbyStatus(res.msg || 'エラー'); return; }
-    mySeat = res.seatIndex;
-    showWaiting(roomId);
-  });
-}
-function setLobbyStatus(msg) { document.getElementById('lobby-status').textContent = msg; }
-function showWaiting(roomId) {
-  document.getElementById('lobby').style.display = 'none';
-  document.getElementById('waiting').style.display = 'flex';
-  document.getElementById('room-code-text').textContent = roomId;
-  if (mySeat === 0) document.getElementById('btn-start').style.display = 'block';
-}
-function copyRoomId() {
-  navigator.clipboard.writeText(myRoomId).then(() => {
-    document.getElementById('copy-btn').textContent = 'コピー済！';
-    setTimeout(() => document.getElementById('copy-btn').textContent = 'コピー', 2000);
-  });
-}
-function startGame() {
-  socket.emit('startGame', {}, (res) => {
-    if (!res || !res.ok) alert(res?.msg || 'エラー');
-  });
-}
-function nextGame() {
-  document.getElementById('ov').classList.remove('show');
-  document.getElementById('mdl').style.display = 'none';
-  socket.emit('nextGame', {});
-}
-
-// ===== サーバーからの更新受信 =====
-socket.on('roomUpdate', (data) => {
-  if (!data.started) {
-    // 待機室更新
-    const list = document.getElementById('seat-list');
-    list.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
-      const p = data.players.find(p => p.seat === i);
-      const div = document.createElement('div');
-      div.className = 'seat-item';
-      div.innerHTML = `<span class="seat-num">座席 ${i + 1}</span>
-        <span class="${p ? 'seat-name' : 'seat-empty'}">${p ? (p.seat === mySeat ? '⭐ ' + p.name + '（あなた）' : p.name) : '空席'}</span>`;
-      list.appendChild(div);
-    }
-    document.getElementById('waiting-status').textContent =
-      data.players.length >= 2 ? `${data.players.length}人参加中 — ホストがゲームを開始できます` : '友達の参加を待っています...';
-    return;
-  }
-  
 function mkCardHTML(c,cls=''){let base='card'+(c.isJoker?' jok':isRed(c)?' red':'')+' nc'+(cls?' '+cls:'');return `<div class="${base}"><div class="cs">${c.isJoker?'★':c.suit}</div><div class="cn">${c.isJoker?'JOK':c.num}</div></div>`;}
 function resolveJokerRank(selList,hand){let ordered=[...selList].sort((a,b)=>a.order-b.order);let jokerPos=ordered.findIndex(s=>s.id==='JOKER'||s.id==='JOKER2');if(jokerPos<0)return null;let normalCards=ordered.filter(s=>s.id!=='JOKER'&&s.id!=='JOKER2').map(s=>hand.find(c=>c.id===s.id)).filter(Boolean);if(!normalCards.length)return null;let normalRanks=normalCards.map(c=>NR[c.num]);let uniqueRanks=[...new Set(normalRanks)];if(uniqueRanks.length===1)return{jokerRank:uniqueRanks[0],suit:normalCards[0].suit};let suit=normalCards[0].suit;let sortedRanks=[...normalRanks].sort((a,b)=>a-b);let gapRank=null,consecutive=true;for(let i=0;i<sortedRanks.length-1;i++){let diff=sortedRanks[i+1]-sortedRanks[i];if(diff===2){if(gapRank!==null){consecutive=false;break;}gapRank=sortedRanks[i]+1;}else if(diff!==1){consecutive=false;break;}}if(!consecutive&&gapRank===null)return null;let candidates=[];if(gapRank!==null)candidates.push(gapRank);candidates.push(sortedRanks[0]-1);candidates.push(sortedRanks[sortedRanks.length-1]+1);for(let jRank of candidates){if(jRank<3||jRank>15)continue;let allRanks=[...sortedRanks,jRank].sort((a,b)=>a-b);let ok=true;for(let i=0;i<allRanks.length-1;i++){if(allRanks[i+1]-allRanks[i]!==1){ok=false;break;}}if(!ok)continue;if(allRanks[jokerPos]===jRank)return{jokerRank:jRank,suit};}return null;}
 function getEffRanks(cards,jokerRank){return cards.map(c=>{if(c.isJoker)return jokerRank!==undefined?jokerRank:null;return NR[c.num];}).filter(r=>r!==null);}
