@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-
-  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-  /* ロビー */
+
+/* ロビー */
 #lobby{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;width:100%;max-width:400px}
 #lobby h1{font-size:36px;font-weight:700;color:#ffd700;letter-spacing:3px;margin-bottom:8px}
 #lobby input{width:100%;padding:12px 16px;border-radius:10px;border:2px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;font-size:16px;outline:none}
@@ -21,6 +20,7 @@
 #room-id-input-wrap{display:none;flex-direction:column;gap:8px;width:100%}
 .or-divider{color:#888;font-size:13px;text-align:center}
 #lobby-status{font-size:13px;color:#90EE90;text-align:center;min-height:20px}
+
 /* 待機室 */
 #waiting{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:500px;padding:32px 0}
 #waiting h2{font-size:22px;font-weight:700;color:#ffd700}
@@ -35,7 +35,8 @@
 .seat-empty{color:#555;font-style:italic}
 #btn-start{background:#27ae60;color:#fff;padding:14px 40px;border-radius:10px;border:none;font-size:16px;font-weight:700;cursor:pointer;display:none}
 #btn-start:hover{background:#2ecc71}
-#waiting-status{font-size:13px;color:#90EE90;text-align:center}body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color:#fff;user-select:none;font-size:14px}
+#waiting-status{font-size:13px;color:#90EE90;text-align:center}
+body{font-family:'Segoe UI',sans-serif;background:#1a472a;min-height:100vh;color:#fff;user-select:none;font-size:14px}
 #app{display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:8px}
 #hdr{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:920px;padding:4px 0 6px}
 #hdr h1{font-size:20px;font-weight:700;color:#ffd700;letter-spacing:2px}
@@ -106,7 +107,8 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 </style>
 </head>
 <body>
-  <!-- ロビー -->
+
+<!-- ロビー -->
 <div id="lobby">
   <h1>🃏 大富豪</h1>
   <input id="name-input" placeholder="あなたの名前を入力" maxlength="12">
@@ -132,6 +134,7 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
   <button id="btn-start" onclick="startGame()">ゲーム開始！</button>
   <div id="waiting-status">友達の参加を待っています... (最大4人 / 2人から開始可能)</div>
 </div>
+  
 <div id="app">
   <div id="hdr"><h1>🃏 大富豪</h1>
     <div id="sbar">ラウンド <span id="rnum">1</span> <span id="revi"></span>
@@ -209,6 +212,85 @@ function sortHand(h){return [...h].sort((a,b)=>{if(a.isJoker&&b.isJoker)return 0
 let G={},SEL=[],selCnt=0,EXSEL=[],DISSEL=[];
 let _exGotCards=[];
 
+// ===== Socket.IO =====
+const socket = io();
+let mySeat = -1;
+let myName = '';
+let myRoomId = '';
+let gameState = null;
+let SEL = [], EXSEL = [], DISSEL = [];
+
+// ===== ロビー =====
+function createRoom() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) { setLobbyStatus('名前を入力してください'); return; }
+  myName = name;
+  socket.emit('createRoom', { name }, (res) => {
+    if (!res.ok) { setLobbyStatus(res.msg || 'エラー'); return; }
+    myRoomId = res.roomId;
+    mySeat = 0;
+    showWaiting(res.roomId);
+  });
+}
+function showJoinInput() {
+  document.getElementById('room-id-input-wrap').style.display = 'flex';
+  document.getElementById('btn-join').style.display = 'none';
+}
+function joinRoom() {
+  const name = document.getElementById('name-input').value.trim();
+  const roomId = document.getElementById('room-id-input').value.trim().toUpperCase();
+  if (!name) { setLobbyStatus('名前を入力してください'); return; }
+  if (!roomId) { setLobbyStatus('ルームIDを入力してください'); return; }
+  myName = name; myRoomId = roomId;
+  socket.emit('joinRoom', { roomId, name }, (res) => {
+    if (!res.ok) { setLobbyStatus(res.msg || 'エラー'); return; }
+    mySeat = res.seatIndex;
+    showWaiting(roomId);
+  });
+}
+function setLobbyStatus(msg) { document.getElementById('lobby-status').textContent = msg; }
+function showWaiting(roomId) {
+  document.getElementById('lobby').style.display = 'none';
+  document.getElementById('waiting').style.display = 'flex';
+  document.getElementById('room-code-text').textContent = roomId;
+  if (mySeat === 0) document.getElementById('btn-start').style.display = 'block';
+}
+function copyRoomId() {
+  navigator.clipboard.writeText(myRoomId).then(() => {
+    document.getElementById('copy-btn').textContent = 'コピー済！';
+    setTimeout(() => document.getElementById('copy-btn').textContent = 'コピー', 2000);
+  });
+}
+function startGame() {
+  socket.emit('startGame', {}, (res) => {
+    if (!res || !res.ok) alert(res?.msg || 'エラー');
+  });
+}
+function nextGame() {
+  document.getElementById('ov').classList.remove('show');
+  document.getElementById('mdl').style.display = 'none';
+  socket.emit('nextGame', {});
+}
+
+// ===== サーバーからの更新受信 =====
+socket.on('roomUpdate', (data) => {
+  if (!data.started) {
+    // 待機室更新
+    const list = document.getElementById('seat-list');
+    list.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const p = data.players.find(p => p.seat === i);
+      const div = document.createElement('div');
+      div.className = 'seat-item';
+      div.innerHTML = `<span class="seat-num">座席 ${i + 1}</span>
+        <span class="${p ? 'seat-name' : 'seat-empty'}">${p ? (p.seat === mySeat ? '⭐ ' + p.name + '（あなた）' : p.name) : '空席'}</span>`;
+      list.appendChild(div);
+    }
+    document.getElementById('waiting-status').textContent =
+      data.players.length >= 2 ? `${data.players.length}人参加中 — ホストがゲームを開始できます` : '友達の参加を待っています...';
+    return;
+  }
+  
 function mkCardHTML(c,cls=''){let base='card'+(c.isJoker?' jok':isRed(c)?' red':'')+' nc'+(cls?' '+cls:'');return `<div class="${base}"><div class="cs">${c.isJoker?'★':c.suit}</div><div class="cn">${c.isJoker?'JOK':c.num}</div></div>`;}
 function resolveJokerRank(selList,hand){let ordered=[...selList].sort((a,b)=>a.order-b.order);let jokerPos=ordered.findIndex(s=>s.id==='JOKER'||s.id==='JOKER2');if(jokerPos<0)return null;let normalCards=ordered.filter(s=>s.id!=='JOKER'&&s.id!=='JOKER2').map(s=>hand.find(c=>c.id===s.id)).filter(Boolean);if(!normalCards.length)return null;let normalRanks=normalCards.map(c=>NR[c.num]);let uniqueRanks=[...new Set(normalRanks)];if(uniqueRanks.length===1)return{jokerRank:uniqueRanks[0],suit:normalCards[0].suit};let suit=normalCards[0].suit;let sortedRanks=[...normalRanks].sort((a,b)=>a-b);let gapRank=null,consecutive=true;for(let i=0;i<sortedRanks.length-1;i++){let diff=sortedRanks[i+1]-sortedRanks[i];if(diff===2){if(gapRank!==null){consecutive=false;break;}gapRank=sortedRanks[i]+1;}else if(diff!==1){consecutive=false;break;}}if(!consecutive&&gapRank===null)return null;let candidates=[];if(gapRank!==null)candidates.push(gapRank);candidates.push(sortedRanks[0]-1);candidates.push(sortedRanks[sortedRanks.length-1]+1);for(let jRank of candidates){if(jRank<3||jRank>15)continue;let allRanks=[...sortedRanks,jRank].sort((a,b)=>a-b);let ok=true;for(let i=0;i<allRanks.length-1;i++){if(allRanks[i+1]-allRanks[i]!==1){ok=false;break;}}if(!ok)continue;if(allRanks[jokerPos]===jRank)return{jokerRank:jRank,suit};}return null;}
 function getEffRanks(cards,jokerRank){return cards.map(c=>{if(c.isJoker)return jokerRank!==undefined?jokerRank:null;return NR[c.num];}).filter(r=>r!==null);}
