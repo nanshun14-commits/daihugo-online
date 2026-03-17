@@ -106,6 +106,32 @@ button:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
 </style>
 </head>
 <body>
+  <!-- ロビー -->
+<div id="lobby">
+  <h1>🃏 大富豪</h1>
+  <input id="name-input" placeholder="あなたの名前を入力" maxlength="12">
+  <button class="lobby-btn" id="btn-create" onclick="createRoom()">ルームを作る</button>
+  <div class="or-divider">── または ──</div>
+  <div id="room-id-input-wrap">
+    <input id="room-id-input" placeholder="ルームID（例：ABC123）" maxlength="6" style="text-transform:uppercase">
+    <button class="lobby-btn" id="btn-join-confirm" onclick="joinRoom()">参加する</button>
+  </div>
+  <button class="lobby-btn" id="btn-join" onclick="showJoinInput()">ルームに参加する</button>
+  <div id="lobby-status"></div>
+</div>
+
+<!-- 待機室 -->
+<div id="waiting">
+  <h2>待機中...</h2>
+  <div id="room-code-display">
+    <div class="label">ルームID（友達に教えてね）</div>
+    <div class="code" id="room-code-text">------</div>
+    <button id="copy-btn" onclick="copyRoomId()">コピー</button>
+  </div>
+  <div id="seat-list"></div>
+  <button id="btn-start" onclick="startGame()">ゲーム開始！</button>
+  <div id="waiting-status">友達の参加を待っています... (最大4人 / 2人から開始可能)</div>
+</div>
 <div id="app">
   <div id="hdr"><h1>🃏 大富豪</h1>
     <div id="sbar">ラウンド <span id="rnum">1</span> <span id="revi"></span>
